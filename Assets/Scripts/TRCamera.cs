@@ -1,38 +1,33 @@
 using UnityEngine;
 
-public class TRCamera : MonoBehaviour
+public class RailwayCamera : MonoBehaviour
 {
     [Header("Movimento")]
-    public float moveSpeed = 20f;
-    public float dragSpeed = 0.5f;
-
-    [Header("Rotação")]
-    public float rotationSpeed = 100f;
+    public float moveSpeed = 50f;
 
     [Header("Zoom")]
-    public Camera cam;
-    public float zoomSpeed = 500f;
-    public float minZoom = 15f;
-    public float maxZoom = 80f;
+    public float zoomSpeed = 300f;
+    public float minY = 15f;
+    public float maxY = 120f;
 
-    [Header("Limites do Mapa")]
-    public float minX = -100f;
-    public float maxX = 100f;
-    public float minZ = -100f;
-    public float maxZ = 100f;
+    [Header("Rotação")]
+    public float rotateSpeed = 120f;
 
-    private Vector3 lastMousePosition;
+    [Header("Mapa")]
+    public float minX = -500f;
+    public float maxX = 500f;
+    public float minZ = -500f;
+    public float maxZ = 500f;
 
     void Update()
     {
-        MoveCamera();
-        RotateCamera();
-        ZoomCamera();
-        DragCamera();
+        Move();
+        Zoom();
+        Rotate();
         ClampPosition();
     }
 
-    void MoveCamera()
+    void Move()
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
@@ -46,71 +41,35 @@ public class TRCamera : MonoBehaviour
         forward.Normalize();
         right.Normalize();
 
-        Vector3 move = (forward * v + right * h) * moveSpeed * Time.deltaTime;
+        Vector3 dir = forward * v + right * h;
 
-        transform.position += move;
+        transform.position += dir * moveSpeed * Time.deltaTime;
     }
 
-    void RotateCamera()
-    {
-        if (Input.GetKey(KeyCode.Q))
-        {
-            transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime, Space.World);
-        }
-
-        if (Input.GetKey(KeyCode.E))
-        {
-            transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime, Space.World);
-        }
-    }
-
-    void ZoomCamera()
+    void Zoom()
     {
         float scroll = Input.GetAxis("Mouse ScrollWheel");
 
-        if (scroll != 0)
-        {
-            Vector3 pos = cam.transform.localPosition;
+        Vector3 pos = transform.position;
 
-            pos += cam.transform.forward * scroll * zoomSpeed * Time.deltaTime;
+        pos += transform.forward * scroll * zoomSpeed * Time.deltaTime;
 
-            float distance = Vector3.Distance(
-                cam.transform.localPosition,
-                Vector3.zero
-            );
+        pos.y = Mathf.Clamp(pos.y, minY, maxY);
 
-            if (distance > maxZoom)
-                pos = pos.normalized * maxZoom;
-
-            if (distance < minZoom)
-                pos = pos.normalized * minZoom;
-
-            cam.transform.localPosition = pos;
-        }
+        transform.position = pos;
     }
 
-    void DragCamera()
+    void Rotate()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButton(2))
         {
-            lastMousePosition = Input.mousePosition;
-        }
+            float mouseX = Input.GetAxis("Mouse X");
 
-        if (Input.GetMouseButton(1))
-        {
-            Vector3 delta = Input.mousePosition - lastMousePosition;
-
-            Vector3 move =
-                (-transform.right * delta.x +
-                -transform.forward * delta.y) *
-                dragSpeed *
-                Time.deltaTime;
-
-            move.y = 0;
-
-            transform.position += move;
-
-            lastMousePosition = Input.mousePosition;
+            transform.Rotate(
+                Vector3.up,
+                mouseX * rotateSpeed * Time.deltaTime,
+                Space.World
+            );
         }
     }
 
