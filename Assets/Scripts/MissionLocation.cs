@@ -16,8 +16,12 @@ public class MissionLocation : MonoBehaviour, IInteractable
 
     public void ShowOutline()
     {
+        Debug.Log("ShowOutline");
+
         if (outline != null)
             outline.enabled = true;
+
+        Debug.Log(MissionUI.Instance);
 
         MissionUI.Instance.ShowMission(this);
     }

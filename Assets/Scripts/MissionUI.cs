@@ -22,32 +22,16 @@ public class MissionUI : MonoBehaviour
 
     public void ShowMission(MissionLocation mission)
     {
+        Debug.Log(panel);
+        Debug.Log(destinationText);
+        Debug.Log(rewardText);
+        Debug.Log(coalText);
+        Debug.Log(driverText);
+        Debug.Log(statusText);
+        Debug.Log(mission);
+        Debug.Log(mission.mission);
+
         currentMission = mission;
-
-        panel.SetActive(true);
-
-        destinationText.text =
-            "Destino: " + mission.mission.destination;
-
-        rewardText.text =
-            "Recompensa: £" + mission.mission.reward;
-
-        coalText.text =
-            "Carvão: " +
-            CompanyResources.Instance.coal +
-            "/" +
-            mission.mission.coalRequired;
-
-        driverText.text =
-            "Maquinistas: " +
-            CompanyResources.Instance.drivers +
-            "/" +
-            mission.mission.driverRequired;
-
-        statusText.text =
-            mission.CanStart()
-            ? "Pronto para partir"
-            : "Recursos insuficientes";
     }
 
     public void HideMission()
