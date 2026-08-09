@@ -18,14 +18,18 @@ public class DeerAI : MonoBehaviour
     [SerializeField] private float rotationSpeed = 5f;
 
     [Header("Wandering")]
-    [SerializeField] private float wanderRadius = 15f;
-    [SerializeField] private float minIdleTime = 2f;
-    [SerializeField] private float maxIdleTime = 6f;
+    [SerializeField] private float minWalkDistance = 5f;
+    [SerializeField] private float maxWalkDistance = 12f;
+    [SerializeField] private float idleMinTime = 2f;
+    [SerializeField] private float idleMaxTime = 5f;
+    [SerializeField] private float walkMinTime = 4f;
+    [SerializeField] private float walkMaxTime = 10f;
 
-    [SerializeField] private float minWalkTime = 3f;
-    [SerializeField] private float maxWalkTime = 8f;
+    [Header("NavMesh")]
+    [SerializeField] private float sampleDistance = 10f;
 
     private DeerState currentState;
+
     private float stateTimer;
 
     private void Start()
@@ -37,15 +41,14 @@ public class DeerAI : MonoBehaviour
             animator = GetComponentInChildren<Animator>();
 
         agent.speed = walkSpeed;
-        agent.angularSpeed = 360f;
+        agent.stoppingDistance = 0.2f;
+        agent.autoBraking = true;
 
         ChangeState(DeerState.Idle);
     }
 
     private void Update()
     {
-        stateTimer -= Time.deltaTime;
-
         switch (currentState)
         {
             case DeerState.Idle:
@@ -56,8 +59,6 @@ public class DeerAI : MonoBehaviour
                 UpdateWalking();
                 break;
         }
-
-        UpdateAnimator();
     }
 
     private void ChangeState(DeerState newState)
@@ -71,22 +72,33 @@ public class DeerAI : MonoBehaviour
                 agent.isStopped = true;
 
                 stateTimer = Random.Range(
-                    minIdleTime,
-                    maxIdleTime
+                    idleMinTime,
+                    idleMaxTime
                 );
+
+                SetWalkingAnimation(false);
 
                 break;
 
             case DeerState.Walking:
 
-                agent.isStopped = false;
+                if (FindRandomDestination())
+                {
+                    agent.isStopped = false;
 
-                stateTimer = Random.Range(
-                    minWalkTime,
-                    maxWalkTime
-                );
+                    stateTimer = Random.Range(
+                        walkMinTime,
+                        walkMaxTime
+                    );
 
-                FindRandomDestination();
+                    SetWalkingAnimation(true);
+                }
+                else
+                {
+                    // Se não encontrou posição válida,
+                    // continua no Idle.
+                    ChangeState(DeerState.Idle);
+                }
 
                 break;
         }
@@ -94,7 +106,7 @@ public class DeerAI : MonoBehaviour
 
     private void UpdateIdle()
     {
-        agent.isStopped = true;
+        stateTimer -= Time.deltaTime;
 
         if (stateTimer <= 0f)
         {
@@ -104,54 +116,73 @@ public class DeerAI : MonoBehaviour
 
     private void UpdateWalking()
     {
-        agent.isStopped = false;
+        stateTimer -= Time.deltaTime;
 
-        if (!agent.pathPending &&
-            agent.remainingDistance <= agent.stoppingDistance)
+        // Espera o NavMesh terminar de calcular o caminho.
+        if (agent.pathPending)
+            return;
+
+        // Chegou no destino.
+        if (agent.remainingDistance <= agent.stoppingDistance)
         {
             ChangeState(DeerState.Idle);
             return;
         }
 
+        // Tempo máximo andando acabou.
         if (stateTimer <= 0f)
         {
+            agent.ResetPath();
             ChangeState(DeerState.Idle);
+            return;
+        }
+
+        // Rotação suave.
+        if (agent.velocity.sqrMagnitude > 0.01f)
+        {
+            Vector3 direction = agent.velocity.normalized;
+            direction.y = 0f;
+
+            if (direction != Vector3.zero)
+            {
+                Quaternion targetRotation =
+                    Quaternion.LookRotation(direction);
+
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    targetRotation,
+                    rotationSpeed * Time.deltaTime
+                );
+            }
         }
     }
 
-    private void FindRandomDestination()
+    private bool FindRandomDestination()
     {
         Vector3 randomDirection =
-            Random.insideUnitSphere * wanderRadius;
+            Random.insideUnitSphere *
+            Random.Range(minWalkDistance, maxWalkDistance);
 
         randomDirection += transform.position;
 
         if (NavMesh.SamplePosition(
             randomDirection,
             out NavMeshHit hit,
-            wanderRadius,
+            sampleDistance,
             NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
+            return true;
         }
-        else
-        {
-            ChangeState(DeerState.Idle);
-        }
+
+        return false;
     }
 
-    private void UpdateAnimator()
+    private void SetWalkingAnimation(bool walking)
     {
-        if (animator == null)
-            return;
-
-        float speed = agent.velocity.magnitude;
-
-        animator.SetFloat(
-            "Speed",
-            speed,
-            0.15f,
-            Time.deltaTime
-        );
+        if (animator != null)
+        {
+            animator.SetBool("IsWalking", walking);
+        }
     }
 }
