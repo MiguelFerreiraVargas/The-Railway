@@ -1,11 +1,17 @@
 using UnityEngine;
 using UnityEngine.Splines;
+using Unity.Mathematics;
 using StarterAssets;
 
 public class TrainInteraction : MonoBehaviour
 {
-    [Header("Trem")]
+    [Header("Spline")]
     public SplineAnimate splineAnimate;
+
+    [Header("Velocidade")]
+    public float maxSpeed = 15f;
+    public float accelerationTime = 8f;
+    public float decelerationTime = 5f;
 
     [Header("Player")]
     public Transform player;
@@ -20,12 +26,30 @@ public class TrainInteraction : MonoBehaviour
     [Header("Player Input")]
     public StarterAssetsInputs playerInputs;
 
-    private bool insideTrain = false;
-
+    private SplineContainer splineContainer;
     private CharacterController characterController;
 
-    void Start()
+    private bool insideTrain = false;
+    private bool accelerating = false;
+    private bool braking = false;
+    private bool waitingToExit = false;
+
+    private float currentSpeed = 0f;
+    private float splinePosition = 0f;
+    private float splineLength = 0f;
+
+    void Awake()
     {
+        if (splineAnimate == null)
+        {
+            splineAnimate = GetComponent<SplineAnimate>();
+        }
+
+        if (splineAnimate != null)
+        {
+            splineContainer = splineAnimate.Container;
+        }
+
         if (player != null)
         {
             characterController =
@@ -33,138 +57,397 @@ public class TrainInteraction : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        if (splineContainer == null)
+        {
+            Debug.LogError(
+                "TrainInteraction: não encontrou o Spline Container!"
+            );
+
+            return;
+        }
+
+        splineLength =
+            splineContainer.CalculateLength();
+
+        if (splineAnimate != null)
+        {
+            splineAnimate.Pause();
+        }
+    }
+
+    void Update()
+    {
+        if (splineContainer == null)
+            return;
+
+        if (!insideTrain && !braking)
+            return;
+
+        // =====================================================
+        // ACELERAÇÃO
+        // =====================================================
+
+        if (accelerating)
+        {
+            float acceleration =
+                maxSpeed /
+                Mathf.Max(
+                    accelerationTime,
+                    0.01f
+                );
+
+            currentSpeed =
+                Mathf.MoveTowards(
+                    currentSpeed,
+                    maxSpeed,
+                    acceleration * Time.deltaTime
+                );
+
+            if (currentSpeed >= maxSpeed)
+            {
+                currentSpeed = maxSpeed;
+                accelerating = false;
+            }
+        }
+
+        // =====================================================
+        // FREIO
+        // =====================================================
+
+        if (braking)
+        {
+            float deceleration =
+                maxSpeed /
+                Mathf.Max(
+                    decelerationTime,
+                    0.01f
+                );
+
+            currentSpeed =
+                Mathf.MoveTowards(
+                    currentSpeed,
+                    0f,
+                    deceleration * Time.deltaTime
+                );
+
+            // =================================================
+            // TREM PAROU
+            // =================================================
+
+            if (currentSpeed <= 0.001f)
+            {
+                currentSpeed = 0f;
+                braking = false;
+
+                SetTrainPosition();
+
+                // Só sai depois que o trem realmente parou.
+                if (waitingToExit)
+                {
+                    waitingToExit = false;
+
+                    ExitPlayer();
+                }
+            }
+        }
+
+        // =====================================================
+        // MOVIMENTO
+        // =====================================================
+
+        if (currentSpeed > 0f &&
+            splineLength > 0f)
+        {
+            float movement =
+                (currentSpeed / splineLength) *
+                Time.deltaTime;
+
+            splinePosition += movement;
+
+            splinePosition =
+                Mathf.Clamp01(
+                    splinePosition
+                );
+
+            SetTrainPosition();
+
+            // =================================================
+            // FINAL DO SPLINE
+            // =================================================
+
+            if (splinePosition >= 1f)
+            {
+                splinePosition = 1f;
+
+                currentSpeed = 0f;
+                accelerating = false;
+                braking = false;
+
+                SetTrainPosition();
+
+                Debug.Log(
+                    "Trem chegou ao final do spline."
+                );
+
+                // Se o jogador estava esperando para sair,
+                // agora o trem chegou ao final e está parado.
+                if (waitingToExit)
+                {
+                    waitingToExit = false;
+
+                    ExitPlayer();
+                }
+            }
+        }
+    }
+
+    void SetTrainPosition()
+    {
+        if (splineContainer == null)
+            return;
+
+        if (!splineContainer.Evaluate(
+            splinePosition,
+            out float3 position,
+            out float3 tangent,
+            out float3 upVector))
+        {
+            return;
+        }
+
+        if (math.lengthsq(tangent) < 0.0001f)
+            return;
+
+        transform.position =
+            (Vector3)position;
+
+        Quaternion rotation =
+            Quaternion.LookRotation(
+                ((Vector3)tangent).normalized,
+                ((Vector3)upVector).normalized
+            );
+
+        rotation *=
+            Quaternion.Euler(
+                0f,
+                -90f,
+                0f
+            );
+
+        transform.rotation =
+            rotation;
+    }
+
     void LateUpdate()
     {
         if (!insideTrain)
             return;
 
-        if (player == null || trainSeat == null)
+        if (player == null ||
+            trainSeat == null)
             return;
-
-        // =====================================================
-        // BLOQUEIA O MOVIMENTO DO PLAYER
-        // =====================================================
 
         if (playerInputs != null)
         {
-            playerInputs.MoveInput(Vector2.zero);
-            playerInputs.JumpInput(false);
-            playerInputs.SprintInput(false);
+            playerInputs.MoveInput(
+                Vector2.zero
+            );
+
+            playerInputs.JumpInput(
+                false
+            );
+
+            playerInputs.SprintInput(
+                false
+            );
         }
 
-        // =====================================================
-        // PRENDE O PLAYER EXATAMENTE NO SEAT
-        // =====================================================
-
         Vector3 seatPosition =
-            trainSeat.TransformPoint(seatOffset);
+            trainSeat.TransformPoint(
+                seatOffset
+            );
 
-        player.position = seatPosition;
-
-        // IMPORTANTE:
-        // NÃO copiamos a rotação do TrainSeat.
-        // Isso deixa a câmera livre para olhar.
+        player.position =
+            seatPosition;
     }
-
-    // =========================================================
-    // E = ENTRAR / SAIR
-    // =========================================================
 
     public void ToggleTrain()
     {
-        if (insideTrain)
-            ExitTrain();
-        else
-            EnterTrain();
-    }
+        Debug.Log(
+            "ToggleTrain() FOI CHAMADO!"
+        );
 
-    // =========================================================
-    // ENTRAR
-    // =========================================================
+        if (insideTrain)
+        {
+            RequestExitTrain();
+        }
+        else
+        {
+            EnterTrain();
+        }
+    }
 
     void EnterTrain()
     {
-        if (player == null ||
-            trainSeat == null ||
-            splineAnimate == null)
+        Debug.Log(
+            "ENTRANDO NO TREM!"
+        );
+
+        if (splineContainer == null)
         {
-            Debug.LogWarning(
-                "TrainInteraction: configure Player, TrainSeat e Spline Animate."
+            Debug.LogError(
+                "ERRO: Spline Container não encontrado!"
+            );
+
+            return;
+        }
+
+        if (player == null)
+        {
+            Debug.LogError(
+                "ERRO: Player não configurado!"
+            );
+
+            return;
+        }
+
+        if (trainSeat == null)
+        {
+            Debug.LogError(
+                "ERRO: Train Seat não configurado!"
             );
 
             return;
         }
 
         insideTrain = true;
+        accelerating = true;
+        braking = false;
+        waitingToExit = false;
 
-        // Desliga o CharacterController apenas durante
-        // o posicionamento inicial.
+        currentSpeed = 0f;
+
+        SetTrainPosition();
+
         if (characterController != null)
+        {
             characterController.enabled = false;
+        }
 
-        // Coloca exatamente no Seat
         player.position =
-            trainSeat.TransformPoint(seatOffset);
+            trainSeat.TransformPoint(
+                seatOffset
+            );
 
-        // Liga novamente
         if (characterController != null)
+        {
             characterController.enabled = true;
+        }
 
-        // Zera o movimento
         StopPlayer();
 
-        // Começa o trem
-        splineAnimate.Play();
+        Debug.Log(
+            "Trem começou a acelerar!"
+        );
     }
 
     // =========================================================
-    // SAIR
+    // PEDIDO PARA SAIR
     // =========================================================
 
-    void ExitTrain()
+    void RequestExitTrain()
     {
-        if (player == null ||
-            exitPoint == null ||
-            splineAnimate == null)
+        Debug.Log(
+            "SAÍDA SOLICITADA - TREM VAI PARAR PRIMEIRO!"
+        );
+
+        // Se já estiver parado, sai imediatamente.
+        if (currentSpeed <= 0.001f)
         {
-            Debug.LogWarning(
-                "TrainInteraction: configure o ExitPoint."
+            currentSpeed = 0f;
+            braking = false;
+            accelerating = false;
+
+            ExitPlayer();
+
+            return;
+        }
+
+        // Para de acelerar.
+        accelerating = false;
+
+        // Começa a frear.
+        braking = true;
+
+        // NÃO tira o jogador ainda.
+        waitingToExit = true;
+
+        Debug.Log(
+            "Jogador continua dentro do trem enquanto ele freia."
+        );
+    }
+
+    // =========================================================
+    // SAIR DE VERDADE
+    // =========================================================
+
+    void ExitPlayer()
+    {
+        Debug.Log(
+            "TREM PAROU - AGORA O PLAYER VAI SAIR!"
+        );
+
+        insideTrain = false;
+        accelerating = false;
+        braking = false;
+        waitingToExit = false;
+
+        if (exitPoint == null)
+        {
+            Debug.LogError(
+                "ERRO: ExitPoint não configurado!"
             );
 
             return;
         }
 
-        // Para o trem
-        splineAnimate.Pause();
-
-        insideTrain = false;
-
-        // Desliga temporariamente o CharacterController
         if (characterController != null)
+        {
             characterController.enabled = false;
+        }
 
-        // Teleporta para o ponto de saída
-        player.position = exitPoint.position;
-        player.rotation = exitPoint.rotation;
+        player.position =
+            exitPoint.position;
 
-        // Liga novamente
+        player.rotation =
+            exitPoint.rotation;
+
         if (characterController != null)
+        {
             characterController.enabled = true;
+        }
 
         StopPlayer();
     }
-
-    // =========================================================
-    // BLOQUEAR MOVIMENTO
-    // =========================================================
 
     void StopPlayer()
     {
         if (playerInputs == null)
             return;
 
-        playerInputs.MoveInput(Vector2.zero);
-        playerInputs.JumpInput(false);
-        playerInputs.SprintInput(false);
+        playerInputs.MoveInput(
+            Vector2.zero
+        );
+
+        playerInputs.JumpInput(
+            false
+        );
+
+        playerInputs.SprintInput(
+            false
+        );
     }
+
 }

@@ -238,9 +238,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 07f441a7a8f9f0a47a9ab556be032a48, type: 3}
       insertIndex: -1
       addedObject: {fileID: 410624081}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 07f441a7a8f9f0a47a9ab556be032a48, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 410624082}
     - targetCorrespondingSourceObject: {fileID: -5040741770013481671, guid: 07f441a7a8f9f0a47a9ab556be032a48, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1684699036}
@@ -559,35 +556,35 @@ MonoBehaviour:
       TangentIn:
         x: -0
         y: -0
-        z: -88.348755
+        z: -88.33454
       TangentOut:
         x: 0
         y: 0
-        z: 124.39053
+        z: 124.39452
       Rotation:
         value:
           x: 0
-          y: 0.48938867
+          y: 0.48930404
           z: 0
-          w: 0.8720658
+          w: 0.87211335
     - Position:
-        x: 592
+        x: 591.76
         y: 0
-        z: 713
+        z: 713.31
       TangentIn:
         x: -0
         y: -0
-        z: -122.85964
+        z: -122.79522
       TangentOut:
         x: 0
         y: 0
-        z: 69.53711
+        z: 69.44452
       Rotation:
         value:
           x: 0
-          y: -0.31840578
+          y: -0.31877947
           z: -0
-          w: 0.9479546
+          w: 0.94782895
     - Position:
         x: 365
         y: 0
@@ -595,17 +592,17 @@ MonoBehaviour:
       TangentIn:
         x: -0
         y: -0
-        z: -39.34765
+        z: -39.28616
       TangentOut:
         x: 0
         y: 0
-        z: 26.093973
+        z: 26.069218
       Rotation:
         value:
           x: 0
-          y: -0.27493453
+          y: -0.27522025
           z: -0
-          w: 0.961463
+          w: 0.96138126
     - Position:
         x: 396
         y: 0
@@ -613,35 +610,35 @@ MonoBehaviour:
       TangentIn:
         x: -0
         y: -0
-        z: -39.018803
+        z: -38.55409
       TangentOut:
         x: 0
         y: 0
-        z: 79.77158
+        z: 78.553185
       Rotation:
         value:
           x: 0
-          y: 0.40779826
+          y: 0.41611144
           z: 0
-          w: 0.9130721
+          w: 0.9093136
     - Position:
         x: 809
         y: 0
-        z: 927
+        z: 911.4
       TangentIn:
         x: -0
         y: -0
-        z: -98.91887
+        z: -99.59405
       TangentOut:
         x: 0
         y: 0
-        z: 96.086395
+        z: 95.20055
       Rotation:
         value:
           x: 0
-          y: 0.8779653
+          y: 0.881233
           z: 0
-          w: 0.47872424
+          w: 0.47268227
     - Position:
         x: 897
         y: 0
@@ -649,17 +646,17 @@ MonoBehaviour:
       TangentIn:
         x: -0
         y: -0
-        z: -137.15094
+        z: -133.06839
       TangentOut:
         x: 0
         y: 0
-        z: 149.07924
+        z: 147.48602
       Rotation:
         value:
           x: 0
-          y: 0.998674
+          y: 0.9985554
           z: 0
-          w: 0.051480062
+          w: 0.053731266
     - Position:
         x: 889
         y: 0
@@ -936,9 +933,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Splines::UnityEngine.Splines.SplineAnimate
   m_Target: {fileID: 177669697}
   m_PlayOnAwake: 0
-  m_LoopMode: 1
+  m_LoopMode: 0
   m_Method: 1
-  m_Duration: 222.28406
+  m_Duration: 221.35966
   m_MaxSpeed: 20
   m_EasingMode: 0
   m_AlignmentMode: 1
@@ -981,33 +978,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrainInteraction
   splineAnimate: {fileID: 410624078}
+  maxSpeed: 15
+  accelerationTime: 8
+  decelerationTime: 5
   player: {fileID: 228684386}
   trainSeat: {fileID: 932021032}
   seatOffset: {x: 0, y: 0, z: 0}
   exitPoint: {fileID: 1772140013}
   playerInputs: {fileID: 1125498608}
---- !u!95 &410624082
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 410624077}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: e0faa3eb68d424c4e90c43c43e6619b0, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &501545066 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8438872644038744577, guid: 07f441a7a8f9f0a47a9ab556be032a48, type: 3}
