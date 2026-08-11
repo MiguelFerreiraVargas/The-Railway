@@ -11,6 +11,9 @@ public class TrainInteraction : MonoBehaviour
     public Transform player;
     public Transform trainSeat;
 
+    [Header("Ajuste do assento")]
+    public Vector3 seatOffset = Vector3.zero;
+
     [Header("Saída")]
     public Transform exitPoint;
 
@@ -20,7 +23,6 @@ public class TrainInteraction : MonoBehaviour
     private bool insideTrain = false;
 
     private CharacterController characterController;
-    private Vector3 lastSeatPosition;
 
     void Start()
     {
@@ -39,7 +41,10 @@ public class TrainInteraction : MonoBehaviour
         if (player == null || trainSeat == null)
             return;
 
-        // Bloqueia o movimento do Player
+        // =====================================================
+        // BLOQUEIA O MOVIMENTO DO PLAYER
+        // =====================================================
+
         if (playerInputs != null)
         {
             playerInputs.MoveInput(Vector2.zero);
@@ -47,23 +52,23 @@ public class TrainInteraction : MonoBehaviour
             playerInputs.SprintInput(false);
         }
 
-        // Movimento do trem desde o último frame
-        Vector3 trainMovement =
-            trainSeat.position - lastSeatPosition;
+        // =====================================================
+        // PRENDE O PLAYER EXATAMENTE NO SEAT
+        // =====================================================
 
-        // Faz o Player acompanhar o trem
-        if (characterController != null &&
-            characterController.enabled)
-        {
-            characterController.Move(trainMovement);
-        }
-        else
-        {
-            player.position += trainMovement;
-        }
+        Vector3 seatPosition =
+            trainSeat.TransformPoint(seatOffset);
 
-        lastSeatPosition = trainSeat.position;
+        player.position = seatPosition;
+
+        // IMPORTANTE:
+        // NÃO copiamos a rotação do TrainSeat.
+        // Isso deixa a câmera livre para olhar.
     }
+
+    // =========================================================
+    // E = ENTRAR / SAIR
+    // =========================================================
 
     public void ToggleTrain()
     {
@@ -73,6 +78,10 @@ public class TrainInteraction : MonoBehaviour
             EnterTrain();
     }
 
+    // =========================================================
+    // ENTRAR
+    // =========================================================
+
     void EnterTrain()
     {
         if (player == null ||
@@ -80,28 +89,37 @@ public class TrainInteraction : MonoBehaviour
             splineAnimate == null)
         {
             Debug.LogWarning(
-                "Configure Player, TrainSeat e Spline Animate."
+                "TrainInteraction: configure Player, TrainSeat e Spline Animate."
             );
+
             return;
         }
 
         insideTrain = true;
 
-        // Coloca o Player no Seat
+        // Desliga o CharacterController apenas durante
+        // o posicionamento inicial.
         if (characterController != null)
             characterController.enabled = false;
 
-        player.position = trainSeat.position;
+        // Coloca exatamente no Seat
+        player.position =
+            trainSeat.TransformPoint(seatOffset);
 
+        // Liga novamente
         if (characterController != null)
             characterController.enabled = true;
 
-        // Guarda a posição inicial do Seat
-        lastSeatPosition = trainSeat.position;
+        // Zera o movimento
+        StopPlayer();
 
         // Começa o trem
         splineAnimate.Play();
     }
+
+    // =========================================================
+    // SAIR
+    // =========================================================
 
     void ExitTrain()
     {
@@ -110,8 +128,9 @@ public class TrainInteraction : MonoBehaviour
             splineAnimate == null)
         {
             Debug.LogWarning(
-                "Configure o ExitPoint."
+                "TrainInteraction: configure o ExitPoint."
             );
+
             return;
         }
 
@@ -120,22 +139,32 @@ public class TrainInteraction : MonoBehaviour
 
         insideTrain = false;
 
-        // Vai para o ExitPoint
+        // Desliga temporariamente o CharacterController
         if (characterController != null)
             characterController.enabled = false;
 
+        // Teleporta para o ponto de saída
         player.position = exitPoint.position;
         player.rotation = exitPoint.rotation;
 
+        // Liga novamente
         if (characterController != null)
             characterController.enabled = true;
 
-        // Libera o movimento
-        if (playerInputs != null)
-        {
-            playerInputs.MoveInput(Vector2.zero);
-            playerInputs.JumpInput(false);
-            playerInputs.SprintInput(false);
-        }
+        StopPlayer();
+    }
+
+    // =========================================================
+    // BLOQUEAR MOVIMENTO
+    // =========================================================
+
+    void StopPlayer()
+    {
+        if (playerInputs == null)
+            return;
+
+        playerInputs.MoveInput(Vector2.zero);
+        playerInputs.JumpInput(false);
+        playerInputs.SprintInput(false);
     }
 }
