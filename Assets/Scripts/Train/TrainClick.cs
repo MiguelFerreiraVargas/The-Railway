@@ -20,7 +20,6 @@ public class TrainClick : MonoBehaviour
         if (playerCamera == null)
             return;
 
-        // Raio exatamente no centro da tela
         Ray ray = playerCamera.ScreenPointToRay(
             new Vector3(
                 Screen.width / 2f,
@@ -39,7 +38,9 @@ public class TrainClick : MonoBehaviour
 
             if (train != null)
             {
-                Debug.Log("TREM ENCONTRADO - E FUNCIONOU!");
+                Debug.Log(
+                    "TREM ENCONTRADO - E FUNCIONOU!"
+                );
 
                 train.ToggleTrain();
             }

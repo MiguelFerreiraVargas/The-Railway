@@ -30,6 +30,10 @@ public class TrainInteraction : MonoBehaviour
     private CharacterController characterController;
 
     private bool insideTrain = false;
+
+    // Permite que outros scripts saibam se o jogador está no trem
+    public bool IsInsideTrain => insideTrain;
+
     private bool accelerating = false;
     private bool braking = false;
     private bool waitingToExit = false;
@@ -143,7 +147,6 @@ public class TrainInteraction : MonoBehaviour
 
                 SetTrainPosition();
 
-                // Só sai depois que o trem realmente parou.
                 if (waitingToExit)
                 {
                     waitingToExit = false;
@@ -191,8 +194,6 @@ public class TrainInteraction : MonoBehaviour
                     "Trem chegou ao final do spline."
                 );
 
-                // Se o jogador estava esperando para sair,
-                // agora o trem chegou ao final e está parado.
                 if (waitingToExit)
                 {
                     waitingToExit = false;
@@ -363,7 +364,6 @@ public class TrainInteraction : MonoBehaviour
             "SAÍDA SOLICITADA - TREM VAI PARAR PRIMEIRO!"
         );
 
-        // Se já estiver parado, sai imediatamente.
         if (currentSpeed <= 0.001f)
         {
             currentSpeed = 0f;
@@ -375,13 +375,9 @@ public class TrainInteraction : MonoBehaviour
             return;
         }
 
-        // Para de acelerar.
         accelerating = false;
-
-        // Começa a frear.
         braking = true;
 
-        // NÃO tira o jogador ainda.
         waitingToExit = true;
 
         Debug.Log(
@@ -449,5 +445,4 @@ public class TrainInteraction : MonoBehaviour
             false
         );
     }
-
 }
