@@ -1,17 +1,22 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 public class DeerAI : MonoBehaviour
 {
     private enum DeerState
     {
         Idle,
-        Walking
+        Walking,
+        Dead
     }
 
     [Header("References")]
     [SerializeField] private NavMeshAgent agent;
     [SerializeField] private Animator animator;
+
+    [Header("Health")]
+    [SerializeField] private float maxHealth = 100f;
 
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 1.5f;
@@ -28,9 +33,14 @@ public class DeerAI : MonoBehaviour
     [Header("NavMesh")]
     [SerializeField] private float sampleDistance = 10f;
 
-    private DeerState currentState;
+    [Header("Death")]
+    [SerializeField] private GameObject meatPrefab;
+    [SerializeField] private float disappearTime = 2f;
 
+    private DeerState currentState;
     private float stateTimer;
+    private float currentHealth;
+    private bool dead;
 
     private void Start()
     {
@@ -39,6 +49,8 @@ public class DeerAI : MonoBehaviour
 
         if (animator == null)
             animator = GetComponentInChildren<Animator>();
+
+        currentHealth = maxHealth;
 
         agent.speed = walkSpeed;
         agent.stoppingDistance = 0.2f;
@@ -49,6 +61,9 @@ public class DeerAI : MonoBehaviour
 
     private void Update()
     {
+        if (dead)
+            return;
+
         switch (currentState)
         {
             case DeerState.Idle:
@@ -61,8 +76,86 @@ public class DeerAI : MonoBehaviour
         }
     }
 
+    public void TakeDamage(float damage)
+    {
+        if (dead)
+            return;
+
+        currentHealth -= damage;
+
+        currentHealth = Mathf.Clamp(
+            currentHealth,
+            0f,
+            maxHealth
+        );
+
+        if (currentHealth <= 0f)
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        if (dead)
+            return;
+
+        dead = true;
+        currentState = DeerState.Dead;
+
+        if (agent != null)
+        {
+            agent.isStopped = true;
+            agent.ResetPath();
+        }
+
+        // Desliga a animação de andar
+        if (animator != null)
+            animator.SetBool("IsWalking", false);
+
+        // Dropa a carne
+        if (meatPrefab != null)
+        {
+            Instantiate(
+                meatPrefab,
+                transform.position + Vector3.up * 0.5f,
+                Quaternion.identity
+            );
+        }
+
+        StartCoroutine(Disappear());
+    }
+
+    private IEnumerator Disappear()
+    {
+        Vector3 originalScale = transform.localScale;
+
+        float timer = 0f;
+
+        while (timer < disappearTime)
+        {
+            timer += Time.deltaTime;
+
+            float percentage = timer / disappearTime;
+
+            transform.localScale =
+                Vector3.Lerp(
+                    originalScale,
+                    Vector3.zero,
+                    percentage
+                );
+
+            yield return null;
+        }
+
+        Destroy(gameObject);
+    }
+
     private void ChangeState(DeerState newState)
     {
+        if (dead)
+            return;
+
         currentState = newState;
 
         switch (newState)
@@ -95,8 +188,6 @@ public class DeerAI : MonoBehaviour
                 }
                 else
                 {
-                    // Se não encontrou posição válida,
-                    // continua no Idle.
                     ChangeState(DeerState.Idle);
                 }
 
@@ -118,18 +209,15 @@ public class DeerAI : MonoBehaviour
     {
         stateTimer -= Time.deltaTime;
 
-        // Espera o NavMesh terminar de calcular o caminho.
         if (agent.pathPending)
             return;
 
-        // Chegou no destino.
         if (agent.remainingDistance <= agent.stoppingDistance)
         {
             ChangeState(DeerState.Idle);
             return;
         }
 
-        // Tempo máximo andando acabou.
         if (stateTimer <= 0f)
         {
             agent.ResetPath();
@@ -137,7 +225,6 @@ public class DeerAI : MonoBehaviour
             return;
         }
 
-        // Rotação suave.
         if (agent.velocity.sqrMagnitude > 0.01f)
         {
             Vector3 direction = agent.velocity.normalized;
@@ -148,11 +235,12 @@ public class DeerAI : MonoBehaviour
                 Quaternion targetRotation =
                     Quaternion.LookRotation(direction);
 
-                transform.rotation = Quaternion.Slerp(
-                    transform.rotation,
-                    targetRotation,
-                    rotationSpeed * Time.deltaTime
-                );
+                transform.rotation =
+                    Quaternion.Slerp(
+                        transform.rotation,
+                        targetRotation,
+                        rotationSpeed * Time.deltaTime
+                    );
             }
         }
     }
@@ -161,7 +249,10 @@ public class DeerAI : MonoBehaviour
     {
         Vector3 randomDirection =
             Random.insideUnitSphere *
-            Random.Range(minWalkDistance, maxWalkDistance);
+            Random.Range(
+                minWalkDistance,
+                maxWalkDistance
+            );
 
         randomDirection += transform.position;
 
@@ -181,8 +272,6 @@ public class DeerAI : MonoBehaviour
     private void SetWalkingAnimation(bool walking)
     {
         if (animator != null)
-        {
             animator.SetBool("IsWalking", walking);
-        }
     }
 }
