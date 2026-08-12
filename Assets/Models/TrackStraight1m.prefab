@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f69741f295cb784cbda9688db6153d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailPieceCulling
-  renderDistance: 7
+  renderDistance: 100
 --- !u!1 &4458573564135112641
 GameObject:
   m_ObjectHideFlags: 0
