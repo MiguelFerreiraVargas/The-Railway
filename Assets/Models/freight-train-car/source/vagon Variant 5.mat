@@ -48,7 +48,8 @@ Material:
     - _BumpScale: 11
     - _Smoothness: 0.385
     - _SmoothnessTextureChannel: 0
-    m_Colors: []
+    m_Colors:
+    - _Color: {r: 0.9063317, g: 0.9063317, b: 0.9063317, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &5293350088767772122
