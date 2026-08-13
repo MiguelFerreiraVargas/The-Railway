@@ -1,11 +1,22 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using StarterAssets;
 
 public class PauseManager : MonoBehaviour
 {
+    public static PauseManager Instance;
+
     [SerializeField] private GameObject pausePanel;
+    [SerializeField] private FirstPersonController firstPersonController;
 
     private bool isPaused;
+
+    public bool IsPaused => isPaused;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -29,9 +40,12 @@ public class PauseManager : MonoBehaviour
     public void Pause()
     {
         isPaused = true;
+
         pausePanel.SetActive(true);
 
         Time.timeScale = 0f;
+
+        firstPersonController.enabled = false;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -40,9 +54,12 @@ public class PauseManager : MonoBehaviour
     public void Resume()
     {
         isPaused = false;
+
         pausePanel.SetActive(false);
 
         Time.timeScale = 1f;
+
+        firstPersonController.enabled = true;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
