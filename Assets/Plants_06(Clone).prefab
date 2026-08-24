@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4811158647865412943}
   - component: {fileID: 1365266501355999938}
   - component: {fileID: 2515770458422297984}
-  - component: {fileID: 2299183977542402072}
+  - component: {fileID: -8023828499251341397}
   m_Layer: 0
   m_Name: Plants_06(Clone)
   m_TagString: Untagged
@@ -90,22 +90,17 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!205 &2299183977542402072
-LODGroup:
+--- !u!114 &-8023828499251341397
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1965716041316076409}
-  serializedVersion: 2
-  m_LocalReferencePoint: {x: 0, y: 0.015254422, z: 0}
-  m_Size: 0.06377215
-  m_FadeMode: 0
-  m_AnimateCrossFading: 0
-  m_LastLODIsBillboard: 0
-  m_LODs:
-  - screenRelativeHeight: 0.19424067
-    fadeTransitionWidth: 0
-    renderers:
-    - renderer: {fileID: 2515770458422297984}
   m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb43eceafdb2c4140bb6f8ef8b9fe56e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlantCulling
+  angle: 120
+  maxDistance: 1000
