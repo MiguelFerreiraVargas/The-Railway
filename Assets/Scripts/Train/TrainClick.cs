@@ -11,10 +11,10 @@ public class TrainClick : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current == null)
+        if (UnityEngine.InputSystem.Keyboard.current == null)
             return;
 
-        if (!Keyboard.current.eKey.wasPressedThisFrame)
+        if (!UnityEngine.InputSystem.Keyboard.current.eKey.wasPressedThisFrame)
             return;
 
         if (playerCamera == null)

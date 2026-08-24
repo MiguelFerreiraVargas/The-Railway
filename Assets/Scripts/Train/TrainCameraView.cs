@@ -73,7 +73,7 @@ public class TrainCameraView : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current == null)
+        if (UnityEngine.InputSystem.Keyboard.current == null)
             return;
 
         // =====================================================
@@ -81,8 +81,8 @@ public class TrainCameraView : MonoBehaviour
         // =====================================================
 
         bool ctrlPressed =
-            Keyboard.current.leftCtrlKey.isPressed ||
-            Keyboard.current.rightCtrlKey.isPressed;
+            UnityEngine.InputSystem.Keyboard.current.leftCtrlKey.isPressed ||
+            UnityEngine.InputSystem.Keyboard.current.rightCtrlKey.isPressed;
 
         // =====================================================
         // SÓ FUNCIONA DENTRO DO TREM

@@ -28,7 +28,7 @@ public class PauseManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (isPaused)
                 Resume();
