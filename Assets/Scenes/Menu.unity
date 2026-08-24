@@ -5668,7 +5668,7 @@ GameObject:
   - component: {fileID: 445450930}
   - component: {fileID: 445450929}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Press
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11914,8 +11914,9 @@ GameObject:
   - component: {fileID: 2084786470}
   - component: {fileID: 2084786472}
   - component: {fileID: 2084786471}
+  - component: {fileID: 2084786473}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Ttile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12039,6 +12040,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2084786469}
   m_CullTransparentMesh: 1
+--- !u!95 &2084786473
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2084786469}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 7bccf8bbf6b2bcb48a0c00affdb935eb, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2119830961 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5074810760335964509, guid: 07f441a7a8f9f0a47a9ab556be032a48, type: 3}
