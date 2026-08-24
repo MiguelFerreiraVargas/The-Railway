@@ -1,14 +1,33 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 
-public class Keyboard : MonoBehaviour
+public class MenuKeyboard : MonoBehaviour
 {
-    void Update()
+    [Header("UI")]
+    [SerializeField] private GameObject pressAnyKeyText;
+
+    [Header("Animation")]
+    [SerializeField] private Animator menuAnimator;
+
+    private bool hasStarted;
+
+    private void Update()
     {
-        if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.anyKey.wasPressedThisFrame)
+        if (hasStarted)
+            return;
+
+        if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+            StartMenu();
         }
+    }
+
+    private void StartMenu()
+    {
+        hasStarted = true;
+
+        pressAnyKeyText.SetActive(false);
+
+        menuAnimator.SetTrigger("ShowMenu");
     }
 }
