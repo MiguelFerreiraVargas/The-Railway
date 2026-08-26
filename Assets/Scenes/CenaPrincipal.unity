@@ -14,7 +14,7 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
-  m_Fog: 1
+  m_Fog: 0
   m_FogColor: {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.031
@@ -644,8 +644,8 @@ Terrain:
   m_TreeMaximumFullLODCount: 50
   m_DetailObjectDistance: 80
   m_DetailObjectDensity: 1
-  m_HeightmapPixelError: 5
-  m_SplatMapDistance: 1000
+  m_HeightmapPixelError: 58.1
+  m_SplatMapDistance: 5
   m_HeightmapMinimumLODSimplification: 0
   m_HeightmapMaximumLOD: 0
   m_ShadowCastingMode: 2
@@ -655,7 +655,7 @@ Terrain:
   m_StaticShadowCaster: 0
   m_IgnoreQualitySettings: 0
   m_ReflectionProbeUsage: 1
-  m_MaterialTemplate: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e, type: 2}
+  m_MaterialTemplate: {fileID: 2100000, guid: ca0fd0f1dccca344396de85e128a08f7, type: 2}
   m_BakeLightProbesForTrees: 1
   m_PreserveTreePrototypeLayers: 0
   m_DeringLightProbesForTrees: 1
@@ -1708,28 +1708,52 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralTreeSpawner
   player: {fileID: 138687901}
   terrain: {fileID: 150894839}
-  treePrefabs:
-  - {fileID: 4473621810349306256, guid: 3059e7e455ac97a45b586052241eaa5a, type: 3}
-  - {fileID: 5982724054519830666, guid: b14057f868aeb864cb44d7022a524701, type: 3}
-  - {fileID: 4473621810349306256, guid: 3059e7e455ac97a45b586052241eaa5a, type: 3}
-  - {fileID: 4473621810349306256, guid: 3059e7e455ac97a45b586052241eaa5a, type: 3}
-  spawnRadius: 100
+  camadas:
+  - nome: arvore
+    prefabs:
+    - {fileID: 5982724054519830666, guid: b14057f868aeb864cb44d7022a524701, type: 3}
+    density: 1
+    maxPerChunkAtFullDensity: 20
+    minDistanceBetweenInstances: 5
+    maxSlopeAngle: 26.4
+    manterEmPe: 1
+    rotacaoYAleatoria: 1
+    variarEscala: 1
+    escalaMin: 0.9
+    escalaMax: 1.1
+    offsetY: 0
+  - nome: arvore1
+    prefabs:
+    - {fileID: 5982724054519830666, guid: b14057f868aeb864cb44d7022a524701, type: 3}
+    - {fileID: 8199090078585589418, guid: 12f22f5daefc2914e8a9190d10564192, type: 3}
+    - {fileID: 8409108028744607750, guid: 593064e6fe117584e8ac945228c82be2, type: 3}
+    - {fileID: 7989535806894596215, guid: bbfcec1263ed6c84b9c648b6c214cc18, type: 3}
+    - {fileID: 5093171018245378254, guid: 357b55b28b4b9864f9d4bdad150d94b7, type: 3}
+    - {fileID: 5921107911680440171, guid: e8cd934da69237a469ab8c7de6d348ba, type: 3}
+    - {fileID: 4333865596746173895, guid: 50e0446bb342565408d004ea1245b21a, type: 3}
+    - {fileID: 542938143128634201, guid: af709500d74ad1346b87b1dcb074775a, type: 3}
+    density: 1
+    maxPerChunkAtFullDensity: 7
+    minDistanceBetweenInstances: 5
+    maxSlopeAngle: 26.4
+    manterEmPe: 1
+    rotacaoYAleatoria: 1
+    variarEscala: 1
+    escalaMin: 2
+    escalaMax: 3
+    offsetY: 0
+  spawnRadius: 200
   despawnRadius: 140
-  minDistanceBetweenTrees: 6
   chunkSize: 20
-  maxSlopeAngle: 35
   splinePoints:
   - {fileID: 177669699}
-  splineExclusionRadius: 10
-  exclusionZones:
-  - {fileID: 0}
+  splineExclusionRadius: 30
   exclusionLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  density: 1
-  maxTreesPerChunk: 15
-  manterArvoreEmPe: 1
-  rotacaoYAleatoria: 1
+  exclusionBoxSize: {x: 4, y: 3, z: 4}
+  exclusionZones:
+  - {fileID: 0}
   desenharGizmos: 1
 --- !u!4 &477284548
 Transform:
