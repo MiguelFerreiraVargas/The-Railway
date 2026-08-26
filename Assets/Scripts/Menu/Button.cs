@@ -1,12 +1,30 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class ButtonLoad : MonoBehaviour
+public class SceneLoader : MonoBehaviour
 {
+    [Header("Fade")]
+    [SerializeField] private Animator fadeAnimator;
+
+    [SerializeField] private float loadDelay = 1f;
+
     public void LoadNextScene()
     {
-        int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        StartCoroutine(LoadSceneRoutine());
+    }
 
-        SceneManager.LoadScene(nextSceneIndex);
+    private IEnumerator LoadSceneRoutine()
+    {
+        if (fadeAnimator != null)
+        {
+            fadeAnimator.SetTrigger("FadeOut");
+        }
+
+        yield return new WaitForSeconds(loadDelay);
+
+        SceneManager.LoadScene(
+            SceneManager.GetActiveScene().buildIndex + 1
+        );
     }
 }
