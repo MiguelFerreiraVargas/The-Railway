@@ -1709,19 +1709,6 @@ MonoBehaviour:
   player: {fileID: 138687901}
   terrain: {fileID: 150894839}
   camadas:
-  - nome: arvore
-    prefabs:
-    - {fileID: 5982724054519830666, guid: b14057f868aeb864cb44d7022a524701, type: 3}
-    density: 1
-    maxPerChunkAtFullDensity: 20
-    minDistanceBetweenInstances: 5
-    maxSlopeAngle: 26.4
-    manterEmPe: 1
-    rotacaoYAleatoria: 1
-    variarEscala: 1
-    escalaMin: 0.9
-    escalaMax: 1.1
-    offsetY: 0
   - nome: arvore1
     prefabs:
     - {fileID: 5982724054519830666, guid: b14057f868aeb864cb44d7022a524701, type: 3}
@@ -1740,21 +1727,19 @@ MonoBehaviour:
     rotacaoYAleatoria: 1
     variarEscala: 1
     escalaMin: 2
-    escalaMax: 3
+    escalaMax: 2.5
     offsetY: 0
   spawnRadius: 200
   despawnRadius: 140
   chunkSize: 20
-  splinePoints:
-  - {fileID: 177669699}
-  splineExclusionRadius: 30
+  splineContainer: {fileID: 177669697}
+  splineExclusionRadius: 10
+  splineSamples: 500
   exclusionLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  exclusionBoxSize: {x: 4, y: 3, z: 4}
-  exclusionZones:
-  - {fileID: 0}
-  desenharGizmos: 1
+  exclusionBoxSize: {x: 10, y: 10, z: 10}
+  exclusionZones: []
 --- !u!4 &477284548
 Transform:
   m_ObjectHideFlags: 0
