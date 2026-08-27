@@ -38,7 +38,9 @@ Material:
     m_Floats:
     - _AlphaClip: 1
     - _AlphaToMask: 1
-    m_Colors: []
+    m_Colors:
+    - _BaseColor: {r: 0, g: 0.509434, b: 0.007789621, a: 1}
+    - _Color: {r: 0, g: 0.509434, b: 0.0077896216, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &5974602299610260511

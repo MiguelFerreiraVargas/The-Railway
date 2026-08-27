@@ -30,9 +30,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Scale: 0.1
-    - _Speed: 2
-    m_Colors: []
+    - _Scale: 0.03
+    - _Speed: 3
+    m_Colors:
+    - _Albedo: {r: 0.011512972, g: 0.6792453, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &4660091190998095609
