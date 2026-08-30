@@ -4095,28 +4095,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3c524af613f69e4d903961a879a6cc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStamina
-  staminaMax: 100
-  staminaAtual: 100
-  gastoCorrendo: 5
-  recuperacao: 10
-  staminaImage: {fileID: 1946151798}
-  spritesStamina:
-  - {fileID: 21300000, guid: b79066cc5aefecb4a823d7fc49e6f2e1, type: 3}
-  - {fileID: 21300000, guid: 137b4f144ef9a094b9a5a7dc50bd38fd, type: 3}
-  - {fileID: 21300000, guid: ebee1838d63c8aa4b91e827c3acd3b81, type: 3}
-  - {fileID: 21300000, guid: 85336dc74f5d27345bec104d9a3007a1, type: 3}
-  - {fileID: 21300000, guid: acea5d89c723e17488c206864a3027ad, type: 3}
-  - {fileID: 21300000, guid: c23f331aba2d59643adb983c5658a1cd, type: 3}
-  - {fileID: 21300000, guid: 9a817438ee5f5854ca0bd01cec7f40d8, type: 3}
-  - {fileID: 21300000, guid: 0bc5c0013445aae47aae5b45f0b78dd9, type: 3}
-  - {fileID: 21300000, guid: 11c9e4458148aa549ad63884a51e8b0d, type: 3}
-  - {fileID: 21300000, guid: 12a9553745933224b94ae7369bb9c5fd, type: 3}
-  - {fileID: 21300000, guid: 4b86cae374a906e40b866f62e171c681, type: 3}
-  - {fileID: 21300000, guid: da9caef78d3b9e148a291b9fce8a4c00, type: 3}
-  - {fileID: 21300000, guid: 32994d6a9b0143044a020751048171ea, type: 3}
-  - {fileID: 21300000, guid: dabc1841c7b408c4f832e05fc690de20, type: 3}
-  - {fileID: 21300000, guid: 785b4022373b5f34e8b5433b7e368242, type: 3}
-  estaCorrendo: 0
 --- !u!4 &1310314916 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 528946791684953339, guid: b34cc2d028d85eb4295fec883392d99f, type: 3}
@@ -5361,6 +5339,74 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: staminaImage
+      value: 
+      objectReference: {fileID: 1946151798}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: spritesStamina.Array.size
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[0]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 785b4022373b5f34e8b5433b7e368242, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[1]'
+      value: 
+      objectReference: {fileID: 21300000, guid: dabc1841c7b408c4f832e05fc690de20, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[2]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 32994d6a9b0143044a020751048171ea, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[3]'
+      value: 
+      objectReference: {fileID: 21300000, guid: da9caef78d3b9e148a291b9fce8a4c00, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[4]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 4b86cae374a906e40b866f62e171c681, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[5]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 12a9553745933224b94ae7369bb9c5fd, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[6]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 11c9e4458148aa549ad63884a51e8b0d, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[7]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 0bc5c0013445aae47aae5b45f0b78dd9, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[8]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 11c9e4458148aa549ad63884a51e8b0d, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[9]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 9a817438ee5f5854ca0bd01cec7f40d8, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[10]'
+      value: 
+      objectReference: {fileID: 21300000, guid: acea5d89c723e17488c206864a3027ad, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[11]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 85336dc74f5d27345bec104d9a3007a1, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[12]'
+      value: 
+      objectReference: {fileID: 21300000, guid: ebee1838d63c8aa4b91e827c3acd3b81, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[13]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 137b4f144ef9a094b9a5a7dc50bd38fd, type: 3}
+    - target: {fileID: 5800414512861120371, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: 'spritesStamina.Array.data[14]'
+      value: 
+      objectReference: {fileID: 21300000, guid: b79066cc5aefecb4a823d7fc49e6f2e1, type: 3}
     - target: {fileID: 5851238303769801306, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 37
