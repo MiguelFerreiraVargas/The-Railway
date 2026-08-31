@@ -1,17 +1,16 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-public class DocumentInteractable : MonoBehaviour, IInteractable
+// Coloca esse script em um objeto "documento" no cenário (junto com um Collider,
+// na layer configurada como interactableLayer no PlayerArmActions).
+public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
 {
     [Header("Documento")]
-    [SerializeField] private GameObject documentPanel;
-
-    [Header("Configuração")]
-    [SerializeField] private float openDelay = 0.35f;
+    [SerializeField] private GameObject documentPanel; // painel com a Image em tela cheia, desativado por padrão
+    [SerializeField] private float delayBeforeShow = 1.2f; // dá tempo de ver a animação do braço (push) antes do documento aparecer
 
     private bool isOpen;
-    private bool isOpening;
+    private Coroutine openRoutine;
 
     private void Awake()
     {
@@ -21,62 +20,39 @@ public class DocumentInteractable : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        if (isOpen || isOpening)
+        if (isOpen)
             return;
 
-        StartCoroutine(OpenDocumentRoutine());
+        if (openRoutine != null)
+            StopCoroutine(openRoutine);
+
+        openRoutine = StartCoroutine(OpenAfterDelay());
     }
 
-    private IEnumerator OpenDocumentRoutine()
+    private IEnumerator OpenAfterDelay()
     {
-        isOpening = true;
+        yield return new WaitForSeconds(delayBeforeShow);
 
-        yield return new WaitForSeconds(openDelay);
-
-        OpenDocument();
-
-        isOpening = false;
-    }
-
-    private void OpenDocument()
-    {
         if (documentPanel == null)
-            return;
+            yield break;
 
         documentPanel.SetActive(true);
-
         isOpen = true;
 
-        Cursor.lockState =
-            CursorLockMode.None;
-
-        Cursor.visible = true;
+        UIManager.Instance?.OpenPanel(this, pauseGame: true); // libera o mouse e pausa o jogo
+        openRoutine = null;
     }
 
-    private void CloseDocument()
-    {
-        if (documentPanel == null)
-            return;
-
-        documentPanel.SetActive(false);
-
-        isOpen = false;
-
-        Cursor.lockState =
-            CursorLockMode.Locked;
-
-        Cursor.visible = false;
-    }
-
-    private void Update()
+    // chamado pelo UIManager quando aperta ESC
+    public void ClosePanel()
     {
         if (!isOpen)
             return;
 
-        if (Keyboard.current != null &&
-            Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            CloseDocument();
-        }
+        if (documentPanel != null)
+            documentPanel.SetActive(false);
+
+        isOpen = false;
+        UIManager.Instance?.ClosePanelInternal(this); // já cuida de travar o mouse de novo
     }
 }

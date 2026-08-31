@@ -531,7 +531,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemName: Cubo
+  itemId: item_teste
   amount: 1
   collectEffectPrefab: {fileID: 0}
 --- !u!1 &1497470524 stripped
@@ -815,6 +815,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1922426495}
   - component: {fileID: 1922426494}
+  - component: {fileID: 1922426498}
+  - component: {fileID: 1922426497}
+  - component: {fileID: 1922426496}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -836,6 +839,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
   inventoryPanel: {fileID: 660509440}
   items: []
+  isOpen: 0
 --- !u!4 &1922426495
 Transform:
   m_ObjectHideFlags: 0
@@ -851,6 +855,47 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1922426496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922426493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0499f52c367e63e4eafe33f71a0585eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryUI
+  inventoryPanel: {fileID: 660509440}
+  contentText: {fileID: 0}
+  toggleInventoryAction: {fileID: -5727453052002590833, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &1922426497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922426493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba6cbd361cb001749825c4aedccd98d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+  slots: []
+--- !u!114 &1922426498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922426493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 688ab1ca2758af24bb049549e038414a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIManager
+  closeAction: {fileID: -8934207561074622318, guid: 052faaac586de48259a63d0c4782560b, type: 3}
 --- !u!1 &1930767901
 GameObject:
   m_ObjectHideFlags: 0
@@ -884,7 +929,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DocumentInteractable
   documentPanel: {fileID: 1395776225}
-  openDelay: 0.35
+  delayBeforeShow: 1.2
 --- !u!135 &1930767903
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -1076,6 +1121,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 295955667050366426, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.29440948
+      objectReference: {fileID: 0}
+    - target: {fileID: 295955667050366426, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.82092506
+      objectReference: {fileID: 0}
+    - target: {fileID: 295955667050366426, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.44872996
+      objectReference: {fileID: 0}
+    - target: {fileID: 3553644996443945544, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4348174986303608579, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.4916
@@ -1120,6 +1181,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainCamera
       objectReference: {fileID: 0}
+    - target: {fileID: 6244371619155823165, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244371619155823165, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 3496047b1204d794cbdb73f09a3dcff5, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

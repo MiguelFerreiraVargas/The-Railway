@@ -1,52 +1,54 @@
 using System.Collections;
 using UnityEngine;
 
+// Coloca esse script na fogueira (com um Collider na interactableLayer).
+// Cada interação pega 1 carne crua do inventário e, depois de "cookTime"
+// segundos, devolve 1 carne cozida.
 public class Campfire : MonoBehaviour, IInteractable
 {
-    [Header("Cozimento")]
-    [SerializeField] private float cookingTime = 5f;
+    [Header("Receita")]
+    [SerializeField] private string rawItemId = "carne_crua";
+    [SerializeField] private string cookedItemId = "carne_cozida";
+    [SerializeField] private float cookTime = 5f;
 
-    private bool cooking;
+    [Header("Feedback (opcional)")]
+    [SerializeField] private GameObject cookingEffect; // ex: mais fumaça enquanto cozinha
+
+    private bool isCooking;
 
     public void Interact()
     {
-        if (cooking)
+        if (isCooking)
             return;
 
-        if (InventoryManager.Instance == null)
+        if (PlayerInventory.Instance == null)
             return;
 
-        if (!InventoryManager.Instance.HasItem("Carne Crua"))
+        if (PlayerInventory.Instance.GetQuantity(rawItemId) <= 0)
         {
-            Debug.Log("Você não tem carne crua.");
+            Debug.Log("Sem carne crua pra cozinhar.");
             return;
         }
 
-        StartCoroutine(CookMeat());
+        StartCoroutine(CookOne());
     }
 
-    private IEnumerator CookMeat()
+    private IEnumerator CookOne()
     {
-        cooking = true;
+        isCooking = true;
 
-        Debug.Log("Cozinhando carne...");
+        PlayerInventory.Instance.RemoveItem(rawItemId, 1);
 
-        InventoryManager.Instance.RemoveItem(
-            "Carne Crua",
-            1
-        );
+        if (cookingEffect != null)
+            cookingEffect.SetActive(true);
 
-        yield return new WaitForSeconds(
-            cookingTime
-        );
+        yield return new WaitForSeconds(cookTime);
 
-        InventoryManager.Instance.AddItem(
-            "Carne Cozida",
-            1
-        );
+        PlayerInventory.Instance.AddItem(cookedItemId, 1);
 
-        Debug.Log("Carne cozida!");
+        if (cookingEffect != null)
+            cookingEffect.SetActive(false);
 
-        cooking = false;
+        isCooking = false;
     }
 }
