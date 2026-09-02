@@ -24,14 +24,27 @@ public class RadioSource : MonoBehaviour, IInteractable
     [SerializeField] private GameObject subtitlePanel;
     [SerializeField] private UnityEngine.UI.Text subtitleText; // troca por TMP_Text se usar TextMeshPro
 
+    [Header("Outline")]
+    [SerializeField] private Outline outline;
+
     private bool isPlaying;
 
-    public void Interact()
+    private void Awake()
+    {
+        if (outline == null)
+            outline = GetComponent<Outline>();
+
+        HideOutline();
+    }
+
+    // Devolve false (sem tocar animação) se já tá tocando
+    public bool Interact()
     {
         if (isPlaying)
-            return;
+            return false;
 
         StartCoroutine(PlayBroadcast());
+        return true;
     }
 
     private IEnumerator PlayBroadcast()
@@ -79,11 +92,13 @@ public class RadioSource : MonoBehaviour, IInteractable
 
     public void ShowOutline()
     {
-        throw new System.NotImplementedException();
+        if (outline != null)
+            outline.enabled = true;
     }
 
     public void HideOutline()
     {
-        throw new System.NotImplementedException();
+        if (outline != null)
+            outline.enabled = false;
     }
 }

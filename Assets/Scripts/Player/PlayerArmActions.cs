@@ -9,10 +9,13 @@ public interface ICollectible
     void Collect();
 }
 
-// Implementa isso em objetos com que dá pra interagir
+// Implementa isso em objetos com que dá pra interagir.
+// Interact() devolve true se a ação foi ACEITA agora (toca animação),
+// ou false se foi ignorada (ex: documento já aberto/abrindo, fogueira já cozinhando).
+// Isso evita a animação retriggando quando o player aperta E várias vezes seguidas.
 public interface IInteractable
 {
-    void Interact();
+    bool Interact();
     void ShowOutline();
     void HideOutline();
 }
@@ -124,7 +127,6 @@ public class PlayerArmActions : MonoBehaviour
         }
     }
 
-
     private void UpdateOutline()
     {
         if (playerCamera == null)
@@ -168,7 +170,6 @@ public class PlayerArmActions : MonoBehaviour
             ClearTarget();
         }
     }
-
 
     private void OnAttack(InputAction.CallbackContext context)
     {
@@ -216,7 +217,6 @@ public class PlayerArmActions : MonoBehaviour
         }
     }
 
-
     private bool TryRaycastInteractable(out RaycastHit hit)
     {
         hit = default;
@@ -237,6 +237,9 @@ public class PlayerArmActions : MonoBehaviour
         );
     }
 
+    // E — só toca a animação se o objeto REALMENTE aceitou a interação agora.
+    // Isso é o que impede a animação de disparar de novo se você ficar
+    // apertando E enquanto o documento ainda tá no delay pra abrir, por exemplo.
     private void OnInteract(InputAction.CallbackContext context)
     {
         if (!TryRaycastInteractable(out RaycastHit hit))
@@ -245,11 +248,13 @@ public class PlayerArmActions : MonoBehaviour
         IInteractable interactable =
             hit.collider.GetComponentInParent<IInteractable>();
 
-        if (interactable != null)
-        {
+        if (interactable == null)
+            return;
+
+        bool aceitou = interactable.Interact();
+
+        if (aceitou)
             PlayHandAnimation(PushHash, hit.point);
-            interactable.Interact();
-        }
     }
 
     private void OnStore(InputAction.CallbackContext context)
@@ -289,7 +294,6 @@ public class PlayerArmActions : MonoBehaviour
         return side >= 0f;
     }
 
-
     private void RestartGuardTimer()
     {
         if (guardTimerRoutine != null)
@@ -306,8 +310,6 @@ public class PlayerArmActions : MonoBehaviour
 
         guardTimerRoutine = null;
     }
-
-   
 
     private void OnDrawGizmosSelected()
     {
@@ -331,7 +333,7 @@ public class PlayerArmActions : MonoBehaviour
         // Alimentos/coletáveis
         if (interactable is ICollectible)
         {
-            interactionTextTMP.text = "[E] Comer    [Q] Guardar";
+            interactionTextTMP.text = "[E] Consumir    [Q] Guardar";
         }
         else
         {
@@ -339,6 +341,7 @@ public class PlayerArmActions : MonoBehaviour
             interactionTextTMP.text = "[E] Interagir";
         }
     }
+
     private void HideInteractionText()
     {
         if (interactionText != null)

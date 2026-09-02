@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 
-public class DeerAI : MonoBehaviour
+public class DeerAI : MonoBehaviour, IInteractable
 {
     private enum DeerState
     {
@@ -54,6 +54,9 @@ public class DeerAI : MonoBehaviour
     [SerializeField] private string rawMeatItemId = "carne_crua";
     [SerializeField] private int meatAmount = 2;
 
+    [Header("Outline")]
+    [SerializeField] private Outline outline;
+
     private DeerState currentState;
     private float stateTimer;
     private float currentHealth;
@@ -94,6 +97,11 @@ public class DeerAI : MonoBehaviour
         }
 
         currentHealth = maxHealth;
+
+        if (outline == null)
+            outline = GetComponentInChildren<Outline>();
+
+        HideOutline();
 
         agent.speed = walkSpeed;
         agent.stoppingDistance = 0.2f;
@@ -207,19 +215,34 @@ public class DeerAI : MonoBehaviour
     }
 
     // Chamado pelo PlayerArmActions (via raycast na interactableLayer) quando o
-    // player interage com o corpo caído.
-    public void Interact()
+    // player interage com o corpo caído. Devolve false se não tem carne pra
+    // coletar (já morto sem carne, ou já coletada antes).
+    public bool Interact()
     {
         if (!dead || meatCollected)
-            return;
+            return false;
 
         meatCollected = true;
 
         PlayerInventory.Instance?.AddItem(rawMeatItemId, meatAmount);
+        HideOutline();
 
         // já coletou a carne, não precisa mais esperar o timer normal — some agora
         StopAllCoroutines();
         StartCoroutine(FadeOut());
+        return true;
+    }
+
+    public void ShowOutline()
+    {
+        if (outline != null)
+            outline.enabled = true;
+    }
+
+    public void HideOutline()
+    {
+        if (outline != null)
+            outline.enabled = false;
     }
 
     private IEnumerator DeathSequence()

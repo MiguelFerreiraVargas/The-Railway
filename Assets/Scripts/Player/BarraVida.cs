@@ -5,7 +5,6 @@ public class BarraVida : MonoBehaviour
 {
     [Header("Imagem da Barra")]
     public Image imagemVida;
-
     [Header("Sprites da Vida - 10 estágios")]
     public Sprite vida100;
     public Sprite vida90;
@@ -17,40 +16,47 @@ public class BarraVida : MonoBehaviour
     public Sprite vida30;
     public Sprite vida20;
     public Sprite vida10;
-
     [Header("Configuração da Vida")]
     public int vidaMaxima = 100;
     public int vidaAtual = 100;
+
+   
+    public event System.Action<string> OnMorte;
+    private bool morto;
 
     void Start()
     {
         AtualizarBarra();
     }
 
-    public void TomarDano(int dano)
+    public void TomarDano(int dano, string motivo = "Ferimentos")
     {
         vidaAtual -= dano;
-
         if (vidaAtual < 0)
             vidaAtual = 0;
-
         AtualizarBarra();
+
+        if (vidaAtual <= 0 && !morto)
+        {
+            morto = true;
+            OnMorte?.Invoke(motivo);
+        }
     }
 
     public void Curar(int quantidade)
     {
         vidaAtual += quantidade;
-
         if (vidaAtual > vidaMaxima)
             vidaAtual = vidaMaxima;
-
         AtualizarBarra();
+
+        if (vidaAtual > 0)
+            morto = false;
     }
 
     void AtualizarBarra()
     {
         float porcentagem = (float)vidaAtual / vidaMaxima;
-
         if (porcentagem >= 0.9f)
         {
             imagemVida.sprite = vida100;

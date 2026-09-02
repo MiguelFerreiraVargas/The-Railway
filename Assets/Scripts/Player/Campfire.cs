@@ -14,33 +14,36 @@ public class Campfire : MonoBehaviour, IInteractable
     [Header("Feedback (opcional)")]
     [SerializeField] private GameObject cookingEffect; // ex: mais fumaça enquanto cozinha
 
+    [Header("Outline")]
+    [SerializeField] private Outline outline;
+
     private bool isCooking;
 
-    public void HideOutline()
+    private void Awake()
     {
-        throw new System.NotImplementedException();
+        if (outline == null)
+            outline = GetComponent<Outline>();
+
+        HideOutline();
     }
 
-    public void Interact()
+    // Devolve false (sem tocar animação) se já tá cozinhando ou não tem carne crua
+    public bool Interact()
     {
         if (isCooking)
-            return;
+            return false;
 
         if (PlayerInventory.Instance == null)
-            return;
+            return false;
 
         if (PlayerInventory.Instance.GetQuantity(rawItemId) <= 0)
         {
             Debug.Log("Sem carne crua pra cozinhar.");
-            return;
+            return false;
         }
 
         StartCoroutine(CookOne());
-    }
-
-    public void ShowOutline()
-    {
-        throw new System.NotImplementedException();
+        return true;
     }
 
     private IEnumerator CookOne()
@@ -60,5 +63,17 @@ public class Campfire : MonoBehaviour, IInteractable
             cookingEffect.SetActive(false);
 
         isCooking = false;
+    }
+
+    public void ShowOutline()
+    {
+        if (outline != null)
+            outline.enabled = true;
+    }
+
+    public void HideOutline()
+    {
+        if (outline != null)
+            outline.enabled = false;
     }
 }

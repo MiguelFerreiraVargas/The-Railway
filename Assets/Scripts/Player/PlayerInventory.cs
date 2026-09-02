@@ -9,14 +9,19 @@ public class InventorySlot
     public int quantity;
 }
 
-// Coloca UMA VEZ num GameObject persistente (mesmo objeto do UIManager, por exemplo).
 public class PlayerInventory : MonoBehaviour
 {
     public static PlayerInventory Instance { get; private set; }
 
-    [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
+    [Header("Slots")]
+    [SerializeField] private int slotCount = 9;
+
+    private InventorySlot[] slots;
 
     public event Action OnInventoryChanged;
+    public event Action<int> OnSelectedSlotChanged;
+
+    public int SelectedSlotIndex { get; private set; }
 
     private void Awake()
     {
@@ -28,43 +33,95 @@ public class PlayerInventory : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        slots = new InventorySlot[slotCount];
+        for (int i = 0; i < slotCount; i++)
+            slots[i] = new InventorySlot { itemId = "", quantity = 0 };
     }
 
-    public void AddItem(string itemId, int amount = 1)
+    public bool AddItem(string itemId, int amount = 1)
     {
         if (string.IsNullOrEmpty(itemId) || amount <= 0)
-            return;
+            return false;
 
-        InventorySlot slot = slots.Find(s => s.itemId == itemId);
+        foreach (var slot in slots)
+        {
+            if (slot.itemId == itemId)
+            {
+                slot.quantity += amount;
+                OnInventoryChanged?.Invoke();
+                return true;
+            }
+        }
 
-        if (slot != null)
-            slot.quantity += amount;
-        else
-            slots.Add(new InventorySlot { itemId = itemId, quantity = amount });
+        foreach (var slot in slots)
+        {
+            if (string.IsNullOrEmpty(slot.itemId))
+            {
+                slot.itemId = itemId;
+                slot.quantity = amount;
+                OnInventoryChanged?.Invoke();
+                return true;
+            }
+        }
 
-        OnInventoryChanged?.Invoke();
+        Debug.Log("Inventário cheio, não coube: " + itemId);
+        return false;
     }
 
     public bool RemoveItem(string itemId, int amount = 1)
     {
-        InventorySlot slot = slots.Find(s => s.itemId == itemId);
+        foreach (var slot in slots)
+        {
+            if (slot.itemId == itemId && slot.quantity >= amount)
+            {
+                slot.quantity -= amount;
 
-        if (slot == null || slot.quantity < amount)
-            return false;
+                if (slot.quantity <= 0)
+                {
+                    slot.itemId = "";
+                    slot.quantity = 0;
+                }
 
-        slot.quantity -= amount;
+                OnInventoryChanged?.Invoke();
+                return true;
+            }
+        }
 
-        if (slot.quantity <= 0)
-            slots.Remove(slot);
-
-        OnInventoryChanged?.Invoke();
-        return true;
+        return false;
     }
 
     public int GetQuantity(string itemId)
     {
-        InventorySlot slot = slots.Find(s => s.itemId == itemId);
-        return slot != null ? slot.quantity : 0;
+        int total = 0;
+
+        foreach (var slot in slots)
+        {
+            if (slot.itemId == itemId)
+                total += slot.quantity;
+        }
+
+        return total;
+    }
+
+    public void SelectSlot(int index)
+    {
+        if (index < 0 || index >= slots.Length)
+            return;
+
+        SelectedSlotIndex = index;
+        OnSelectedSlotChanged?.Invoke(index);
+    }
+
+    public void LimparInventario()
+    {
+        foreach (var slot in slots)
+        {
+            slot.itemId = "";
+            slot.quantity = 0;
+        }
+
+        OnInventoryChanged?.Invoke();
     }
 
     public IReadOnlyList<InventorySlot> Slots => slots;

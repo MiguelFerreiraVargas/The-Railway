@@ -1,16 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Popula os slots visuais como você preferir (grid de ícones, lista de texto etc) —
-// deixei o RefreshUI() com um exemplo simples em texto, troca pela sua UI de verdade.
+
 public class InventoryUI : MonoBehaviour, IClosablePanel
 {
     [Header("UI")]
     [SerializeField] private GameObject inventoryPanel;
-    [SerializeField] private UnityEngine.UI.Text contentText; // troca por TMP_Text se usar TextMeshPro
+    [SerializeField] private UnityEngine.UI.Text contentText; 
 
     [Header("Input")]
-    [SerializeField] private InputActionReference toggleInventoryAction; // binda em <Keyboard>/tab
+    [SerializeField] private InputActionReference toggleInventoryAction; 
 
     private bool isOpen;
 
@@ -64,7 +63,6 @@ public class InventoryUI : MonoBehaviour, IClosablePanel
         RefreshUI();
     }
 
-    // chamado pelo UIManager (ESC) ou por você mesmo (toggle, botão de fechar)
     public void ClosePanel()
     {
         if (!isOpen)
@@ -86,6 +84,9 @@ public class InventoryUI : MonoBehaviour, IClosablePanel
 
         foreach (var slot in PlayerInventory.Instance.Slots)
         {
+            if (string.IsNullOrEmpty(slot.itemId))
+                continue; // slot vazio, não mostra
+
             contentText.text += $"{slot.itemId} x{slot.quantity}\n";
         }
     }

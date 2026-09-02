@@ -6,9 +6,7 @@ public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
 {
     [Header("Documento")]
     [SerializeField] private GameObject documentPanel;
-
-    [SerializeField]
-    private float delayBeforeShow = 1.2f;
+    [SerializeField] private float delayBeforeShow = 1.2f;
 
     [Header("Botão Fechar")]
     [SerializeField] private Button closeButton;
@@ -39,17 +37,17 @@ public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
             closeButton.onClick.RemoveListener(ClosePanel);
     }
 
-    public void Interact()
+    // Devolve false (e não faz NADA) se já tá aberto ou já tá no meio do delay
+    // pra abrir — é isso que impede a animação de retriggar se você apertar E
+    // várias vezes seguidas enquanto ele ainda tá esperando pra aparecer.
+    public bool Interact()
     {
-        if (isOpen)
-            return;
+        if (isOpen || openRoutine != null)
+            return false;
 
         HideOutline();
-
-        if (openRoutine != null)
-            StopCoroutine(openRoutine);
-
         openRoutine = StartCoroutine(OpenAfterDelay());
+        return true;
     }
 
     private IEnumerator OpenAfterDelay()
@@ -66,7 +64,6 @@ public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
         isOpen = true;
 
         UIManager.Instance?.OpenPanel(this, pauseGame: true);
-
         openRoutine = null;
     }
 
@@ -79,7 +76,6 @@ public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
             documentPanel.SetActive(false);
 
         isOpen = false;
-
         UIManager.Instance?.ClosePanelInternal(this);
     }
 

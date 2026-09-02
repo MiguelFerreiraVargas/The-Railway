@@ -8,54 +8,42 @@ public class CollectibleItem : MonoBehaviour, ICollectible, IInteractable
 
     [Header("Comida (opcional)")]
     [SerializeField] private bool isComida = false;
-    [SerializeField] private int restauraFome = 20;
+    [SerializeField] private int restauraFome = 20; // usado só se isComida = true
 
     [Header("Efeitos (opcional)")]
-    [SerializeField] private GameObject collectEffectPrefab;
-    [SerializeField] private GameObject consumeEffectPrefab;
+    [SerializeField] private GameObject collectEffectPrefab; // ao guardar (Q)
+    [SerializeField] private GameObject consumeEffectPrefab; // ao comer (E)
 
     [Header("Outline")]
     [SerializeField] private Outline outline;
 
     private void Awake()
     {
-        // Tenta pegar automaticamente se você esquecer de arrastar
         if (outline == null)
             outline = GetComponent<Outline>();
 
         HideOutline();
     }
 
+    // Q — guarda na mochila
     public void Collect()
     {
-        HideOutline();
-
         PlayerInventory.Instance?.AddItem(itemId, amount);
 
         if (collectEffectPrefab != null)
-            Instantiate(
-                collectEffectPrefab,
-                transform.position,
-                Quaternion.identity
-            );
+            Instantiate(collectEffectPrefab, transform.position, Quaternion.identity);
 
         Destroy(gameObject);
     }
 
-    public void Interact()
+    public bool Interact()
     {
         if (isComida)
         {
-            HideOutline();
-
             BarraFome.Instance?.Comer(restauraFome);
 
             if (consumeEffectPrefab != null)
-                Instantiate(
-                    consumeEffectPrefab,
-                    transform.position,
-                    Quaternion.identity
-                );
+                Instantiate(consumeEffectPrefab, transform.position, Quaternion.identity);
 
             Destroy(gameObject);
         }
@@ -63,6 +51,8 @@ public class CollectibleItem : MonoBehaviour, ICollectible, IInteractable
         {
             Collect();
         }
+
+        return true;
     }
 
     public void ShowOutline()
