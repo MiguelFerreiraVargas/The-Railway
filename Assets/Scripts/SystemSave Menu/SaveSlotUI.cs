@@ -1,12 +1,17 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class SaveSlotUI : MonoBehaviour
 {
-    public Text[] slotNameTexts;
-    public Text[] slotTimeTexts;
+    [System.Serializable]
+    public class Slot
+    {
+        public TMP_Text nameText;
+        public TMP_Text timeText;
+        public TMP_Text dateText;
+    }
 
-    public GameSaveController gameSaveController;
+    public Slot[] slots = new Slot[3];
 
     void Start()
     {
@@ -15,44 +20,37 @@ public class SaveSlotUI : MonoBehaviour
 
     public void RefreshSlots()
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < slots.Length; i++)
         {
             if (SaveManager.HasSave(i))
             {
                 SaveData data = SaveManager.Load(i);
 
-                slotNameTexts[i].text = data.saveName;
+                // Nome do save
+                slots[i].nameText.text = data.saveName;
 
-                int hours = Mathf.FloorToInt(data.playTimeSeconds / 3600);
+                // Tempo jogado
+                int hours = Mathf.FloorToInt(
+                    data.playTimeSeconds / 3600
+                );
+
                 int minutes = Mathf.FloorToInt(
                     (data.playTimeSeconds % 3600) / 60
                 );
 
-                slotTimeTexts[i].text =
-                    $"{hours:00}h {minutes:00}m played";
+                slots[i].timeText.text =
+                    $"{hours:00}h {minutes:00}m";
+
+                // Última vez que jogou
+                slots[i].dateText.text =
+                    data.lastPlayedDate;
             }
             else
             {
-                slotNameTexts[i].text = "Empty slot";
-                slotTimeTexts[i].text = "";
+                slots[i].nameText.text = "SLOT VAZIO";
+                slots[i].timeText.text = "";
+                slots[i].dateText.text = "";
             }
         }
-    }
-
-    public void SaveSlot(int slot)
-    {
-        gameSaveController.SaveGame(slot);
-        RefreshSlots();
-    }
-
-    public void LoadSlot(int slot)
-    {
-        gameSaveController.LoadGame(slot);
-    }
-
-    public void DeleteSlot(int slot)
-    {
-        SaveManager.DeleteSave(slot);
-        RefreshSlots();
     }
 }

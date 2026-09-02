@@ -7,7 +7,10 @@ public static class SaveManager
 
     private static string GetPath(int slot)
     {
-        return Path.Combine(Application.persistentDataPath, $"save_slot_{slot}.json");
+        return Path.Combine(
+            Application.persistentDataPath,
+            $"save_slot_{slot}.json"
+        );
     }
 
     public static void Save(int slot, SaveData data)
@@ -19,10 +22,15 @@ public static class SaveManager
         }
 
         data.slotIndex = slot;
-        data.lastSaveDate = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+
+        data.lastPlayedDate =
+            System.DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 
         string json = JsonUtility.ToJson(data, true);
+
         File.WriteAllText(GetPath(slot), json);
+
+        Debug.Log("Save realizado no slot " + slot);
     }
 
     public static SaveData Load(int slot)
@@ -33,6 +41,7 @@ public static class SaveManager
             return null;
 
         string json = File.ReadAllText(path);
+
         return JsonUtility.FromJson<SaveData>(json);
     }
 
@@ -44,6 +53,7 @@ public static class SaveManager
     public static void DeleteSave(int slot)
     {
         string path = GetPath(slot);
+
         if (File.Exists(path))
             File.Delete(path);
     }
