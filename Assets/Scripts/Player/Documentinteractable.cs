@@ -1,13 +1,20 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
-// Coloca esse script em um objeto "documento" no cenário (junto com um Collider,
-// na layer configurada como interactableLayer no PlayerArmActions).
 public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
 {
     [Header("Documento")]
-    [SerializeField] private GameObject documentPanel; // painel com a Image em tela cheia, desativado por padrão
-    [SerializeField] private float delayBeforeShow = 1.2f; // dá tempo de ver a animação do braço (push) antes do documento aparecer
+    [SerializeField] private GameObject documentPanel;
+
+    [SerializeField]
+    private float delayBeforeShow = 1.2f;
+
+    [Header("Botão Fechar")]
+    [SerializeField] private Button closeButton;
+
+    [Header("Outline")]
+    [SerializeField] private Outline outline;
 
     private bool isOpen;
     private Coroutine openRoutine;
@@ -16,12 +23,28 @@ public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
     {
         if (documentPanel != null)
             documentPanel.SetActive(false);
+
+        if (outline == null)
+            outline = GetComponent<Outline>();
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(ClosePanel);
+
+        HideOutline();
+    }
+
+    private void OnDestroy()
+    {
+        if (closeButton != null)
+            closeButton.onClick.RemoveListener(ClosePanel);
     }
 
     public void Interact()
     {
         if (isOpen)
             return;
+
+        HideOutline();
 
         if (openRoutine != null)
             StopCoroutine(openRoutine);
@@ -34,16 +57,19 @@ public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
         yield return new WaitForSeconds(delayBeforeShow);
 
         if (documentPanel == null)
+        {
+            openRoutine = null;
             yield break;
+        }
 
         documentPanel.SetActive(true);
         isOpen = true;
 
-        UIManager.Instance?.OpenPanel(this, pauseGame: true); // libera o mouse e pausa o jogo
+        UIManager.Instance?.OpenPanel(this, pauseGame: true);
+
         openRoutine = null;
     }
 
-    // chamado pelo UIManager quando aperta ESC
     public void ClosePanel()
     {
         if (!isOpen)
@@ -53,6 +79,19 @@ public class DocumentInteractable : MonoBehaviour, IInteractable, IClosablePanel
             documentPanel.SetActive(false);
 
         isOpen = false;
-        UIManager.Instance?.ClosePanelInternal(this); // já cuida de travar o mouse de novo
+
+        UIManager.Instance?.ClosePanelInternal(this);
+    }
+
+    public void ShowOutline()
+    {
+        if (outline != null)
+            outline.enabled = true;
+    }
+
+    public void HideOutline()
+    {
+        if (outline != null)
+            outline.enabled = false;
     }
 }

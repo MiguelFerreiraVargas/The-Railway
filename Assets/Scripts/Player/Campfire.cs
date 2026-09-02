@@ -16,6 +16,11 @@ public class Campfire : MonoBehaviour, IInteractable
 
     private bool isCooking;
 
+    public void HideOutline()
+    {
+        throw new System.NotImplementedException();
+    }
+
     public void Interact()
     {
         if (isCooking)
@@ -31,6 +36,11 @@ public class Campfire : MonoBehaviour, IInteractable
         }
 
         StartCoroutine(CookOne());
+    }
+
+    public void ShowOutline()
+    {
+        throw new System.NotImplementedException();
     }
 
     private IEnumerator CookOne()

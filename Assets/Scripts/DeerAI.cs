@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 
-public class DeerAI : MonoBehaviour, IInteractable
+public class DeerAI : MonoBehaviour
 {
     private enum DeerState
     {

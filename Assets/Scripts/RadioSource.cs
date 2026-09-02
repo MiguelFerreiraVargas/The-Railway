@@ -76,4 +76,14 @@ public class RadioSource : MonoBehaviour, IInteractable
         if (subtitlePanel != null)
             subtitlePanel.SetActive(false);
     }
+
+    public void ShowOutline()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void HideOutline()
+    {
+        throw new System.NotImplementedException();
+    }
 }
