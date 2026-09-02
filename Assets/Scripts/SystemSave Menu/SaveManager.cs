@@ -24,13 +24,17 @@ public static class SaveManager
         data.slotIndex = slot;
 
         data.lastPlayedDate =
-            System.DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            System.DateTime.Now.ToString(
+                "dd/MM/yyyy HH:mm"
+            );
 
-        string json = JsonUtility.ToJson(data, true);
+        string json =
+            JsonUtility.ToJson(data, true);
 
-        File.WriteAllText(GetPath(slot), json);
-
-        Debug.Log("Save realizado no slot " + slot);
+        File.WriteAllText(
+            GetPath(slot),
+            json
+        );
     }
 
     public static SaveData Load(int slot)
@@ -40,7 +44,8 @@ public static class SaveManager
         if (!File.Exists(path))
             return null;
 
-        string json = File.ReadAllText(path);
+        string json =
+            File.ReadAllText(path);
 
         return JsonUtility.FromJson<SaveData>(json);
     }

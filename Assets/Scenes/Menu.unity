@@ -11349,6 +11349,51 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 7734622466428524334, guid: 07f441a7a8f9f0a47a9ab556be032a48, type: 3}
+--- !u!1 &956061666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 956061668}
+  - component: {fileID: 956061667}
+  m_Layer: 0
+  m_Name: SaveGameLoader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &956061667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 956061666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 600700b34ffc4bc4991ffaa4285dc2ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SaveGameLoader
+  gameSceneName: CenaPrincipal
+--- !u!4 &956061668
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 956061666}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 43.54277, y: -6.39388, z: 54.64223}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &969166095 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5092148419407519360, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
@@ -12687,6 +12732,66 @@ PrefabInstance:
       propertyPath: m_Name
       value: Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 956061667}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: LoadSlot
+      objectReference: {fileID: 0}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: SaveGameLoader, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1857390055346481764, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 5437317987135199043, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5437317987135199043, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5437317987135199043, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 956061667}
+    - target: {fileID: 5437317987135199043, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5437317987135199043, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: LoadSlot
+      objectReference: {fileID: 0}
+    - target: {fileID: 5437317987135199043, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: SaveGameLoader, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5437317987135199043, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 7215468508659060925, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -12771,6 +12876,38 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1394920990}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 956061667}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: LoadSlot
+      objectReference: {fileID: 0}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: SaveGameLoader, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8781947166125150604, guid: 2c803c80cbc29d9478384f108e9bdc95, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12793,3 +12930,4 @@ SceneRoots:
   - {fileID: 911615233}
   - {fileID: 1887773730}
   - {fileID: 1626943120}
+  - {fileID: 956061668}
