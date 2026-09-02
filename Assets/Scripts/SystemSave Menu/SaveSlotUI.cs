@@ -26,10 +26,9 @@ public class SaveSlotUI : MonoBehaviour
             {
                 SaveData data = SaveManager.Load(i);
 
-                // Nome do save
-                slots[i].nameText.text = data.saveName;
+                slots[i].nameText.text =
+                    data.saveName;
 
-                // Tempo jogado
                 int hours = Mathf.FloorToInt(
                     data.playTimeSeconds / 3600
                 );
@@ -41,14 +40,16 @@ public class SaveSlotUI : MonoBehaviour
                 slots[i].timeText.text =
                     $"{hours:00}h {minutes:00}m";
 
-                // Última vez que jogou
                 slots[i].dateText.text =
                     data.lastPlayedDate;
             }
             else
             {
-                slots[i].nameText.text = "SLOT VAZIO";
+                slots[i].nameText.text =
+                    "SLOT VAZIO";
+
                 slots[i].timeText.text = "";
+
                 slots[i].dateText.text = "";
             }
         }

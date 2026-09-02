@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameSaveController : MonoBehaviour
 {
@@ -7,6 +6,18 @@ public class GameSaveController : MonoBehaviour
     public PlayTimeTracker playTimeTracker;
 
     public int currentLevel = 1;
+
+    void Start()
+    {
+        // Verifica se viemos do menu carregando um save
+        if (SaveGameLoader.selectedSlot >= 0)
+        {
+            LoadGame(SaveGameLoader.selectedSlot);
+
+            // Impede que o mesmo save seja carregado novamente
+            SaveGameLoader.selectedSlot = -1;
+        }
+    }
 
     public void SaveGame(int slot)
     {
@@ -24,8 +35,10 @@ public class GameSaveController : MonoBehaviour
 
         SaveData data = new SaveData();
 
-        data.saveName = "Save " + (slot + 1);
-        data.playTimeSeconds = playTimeTracker.currentPlayTime;
+        data.saveName = "Aventura";
+
+        data.playTimeSeconds =
+            playTimeTracker.currentPlayTime;
 
         data.posX = player.position.x;
         data.posY = player.position.y;
@@ -35,19 +48,20 @@ public class GameSaveController : MonoBehaviour
 
         SaveManager.Save(slot, data);
 
-        Debug.Log("Jogo salvo no slot " + slot);
+        Debug.Log("Jogo salvo no Slot " + (slot + 1));
     }
 
     public void LoadGame(int slot)
     {
         if (!SaveManager.HasSave(slot))
         {
-            Debug.Log("Esse slot está vazio!");
+            Debug.LogWarning("Save não encontrado!");
             return;
         }
 
         SaveData data = SaveManager.Load(slot);
 
+        // Coloca o Player na posição salva
         if (player != null)
         {
             player.position = new Vector3(
@@ -57,13 +71,21 @@ public class GameSaveController : MonoBehaviour
             );
         }
 
+        // Recupera o tempo jogado
         if (playTimeTracker != null)
         {
-            playTimeTracker.currentPlayTime = data.playTimeSeconds;
+            playTimeTracker.currentPlayTime =
+                data.playTimeSeconds;
         }
 
+        // Recupera o level
         currentLevel = data.level;
 
-        Debug.Log("Save carregado do slot " + slot);
+        // Atualiza a data para o momento em que o jogador entrou
+        SaveManager.Save(slot, data);
+
+        Debug.Log(
+            "Save carregado: Slot " + (slot + 1)
+        );
     }
 }
