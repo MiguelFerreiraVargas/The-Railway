@@ -35,6 +35,20 @@ namespace StarterAssets
         public Image staminaImage;
         public Sprite[] spritesStamina;
 
+        [Header("Áudio de Passos")]
+        public AudioSource audioSourcePassos;
+        public AudioClip clipAndar;
+
+        [Tooltip("Velocidade do áudio (pitch) enquanto anda normalmente.")]
+        public float pitchAndando = 1.0f;
+
+        [Tooltip("Velocidade do áudio (pitch) enquanto corre — deixe maior que 1 pra soar mais rápido.")]
+        public float pitchCorrendo = 1.4f;
+
+        // Controla o estado anterior pra saber quando houve transição (parado <-> andando / andando <-> correndo)
+        private bool _estavaAndando = false;
+        private bool _estavaCorrendo = false;
+
         [Space(10)]
         public float JumpHeight = 1.2f;
         public float Gravity = -15.0f;
@@ -108,6 +122,12 @@ namespace StarterAssets
 
             staminaAtual = staminaMax;
             AtualizarBarraStamina();
+
+            if (audioSourcePassos != null)
+            {
+                audioSourcePassos.playOnAwake = false;
+                audioSourcePassos.loop = true;
+            }
         }
 
         private void Update()
@@ -116,6 +136,7 @@ namespace StarterAssets
             GroundedCheck();
             Move();
             AtualizarStamina();
+            GerenciarSomDePassos();
         }
 
         private void LateUpdate()
@@ -174,6 +195,44 @@ namespace StarterAssets
             indice = Mathf.Clamp(indice, 0, spritesStamina.Length - 1);
 
             staminaImage.sprite = spritesStamina[indice];
+        }
+
+        // Toca o som de passos quando o player começa a andar/correr,
+        // sempre iniciando em um ponto aleatório do clipe pra não ficar repetitivo.
+        // Troca o clipe automaticamente se mudar de "andando" pra "correndo" (ou vice-versa).
+        private void GerenciarSomDePassos()
+        {
+            if (audioSourcePassos == null || clipAndar == null)
+                return;
+
+            bool estaAndando = _input.move != Vector2.zero && Grounded;
+            bool estaCorrendo = estaAndando && PodeCorrer();
+
+            bool comecouAMover = estaAndando && !_estavaAndando;
+
+            if (comecouAMover)
+            {
+                audioSourcePassos.clip = clipAndar;
+
+                // Começa em um ponto aleatório do áudio (evita começar sempre do mesmo trecho)
+                audioSourcePassos.time = Random.Range(0f, Mathf.Max(0.01f, clipAndar.length - 0.05f));
+
+                audioSourcePassos.pitch = estaCorrendo ? pitchCorrendo : pitchAndando;
+
+                audioSourcePassos.Play();
+            }
+            else if (estaAndando && _estavaAndando && estaCorrendo != _estavaCorrendo)
+            {
+                // Só troca a velocidade do som, sem reiniciar o clipe nem pular pra outro ponto
+                audioSourcePassos.pitch = estaCorrendo ? pitchCorrendo : pitchAndando;
+            }
+            else if (!estaAndando && _estavaAndando)
+            {
+                audioSourcePassos.Stop();
+            }
+
+            _estavaAndando = estaAndando;
+            _estavaCorrendo = estaCorrendo;
         }
 
         private void GroundedCheck()

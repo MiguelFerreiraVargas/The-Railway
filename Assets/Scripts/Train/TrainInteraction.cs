@@ -26,6 +26,21 @@ public class TrainInteraction : MonoBehaviour
     [Header("Player Input")]
     public StarterAssetsInputs playerInputs;
 
+    [Header("Áudio do Trem")]
+    [Tooltip("AudioSource usado para o som de movimento do trem (deixe em Loop).")]
+    public AudioSource audioSourceMovimento;
+    public AudioClip clipMovimento;
+
+    [Tooltip("Pitch do som de movimento quando o trem está devagar/parando.")]
+    public float pitchMinimo = 0.7f;
+
+    [Tooltip("Pitch do som de movimento quando o trem está na velocidade máxima.")]
+    public float pitchMaximo = 1.5f;
+
+    [Tooltip("AudioSource usado para o som de freio (toca uma vez, não precisa de loop).")]
+    public AudioSource audioSourceFreio;
+    public AudioClip clipFreio;
+
     private SplineContainer splineContainer;
     private CharacterController characterController;
 
@@ -41,6 +56,9 @@ public class TrainInteraction : MonoBehaviour
     private float currentSpeed = 0f;
     private float splinePosition = 0f;
     private float splineLength = 0f;
+
+    // Controla transições de estado pra saber quando tocar o som de freio uma única vez
+    private bool _estavaFreando = false;
 
     void Awake()
     {
@@ -79,6 +97,23 @@ public class TrainInteraction : MonoBehaviour
         {
             splineAnimate.Pause();
         }
+
+        if (audioSourceMovimento != null)
+        {
+            audioSourceMovimento.loop = true;
+            audioSourceMovimento.playOnAwake = false;
+
+            if (clipMovimento != null)
+            {
+                audioSourceMovimento.clip = clipMovimento;
+            }
+        }
+
+        if (audioSourceFreio != null)
+        {
+            audioSourceFreio.loop = false;
+            audioSourceFreio.playOnAwake = false;
+        }
     }
 
     void Update()
@@ -87,7 +122,10 @@ public class TrainInteraction : MonoBehaviour
             return;
 
         if (!insideTrain && !braking)
+        {
+            AtualizarSomMovimento();
             return;
+        }
 
         // =====================================================
         // ACELERAÇÃO
@@ -122,6 +160,12 @@ public class TrainInteraction : MonoBehaviour
 
         if (braking)
         {
+            // Assim que o freio começa, toca o som de freio uma única vez
+            if (!_estavaFreando)
+            {
+                TocarSomFreio();
+            }
+
             float deceleration =
                 maxSpeed /
                 Mathf.Max(
@@ -155,6 +199,8 @@ public class TrainInteraction : MonoBehaviour
                 }
             }
         }
+
+        _estavaFreando = braking;
 
         // =====================================================
         // MOVIMENTO
@@ -202,6 +248,44 @@ public class TrainInteraction : MonoBehaviour
                 }
             }
         }
+
+        AtualizarSomMovimento();
+    }
+
+    // Toca/ajusta o som de movimento do trem. O pitch varia de acordo
+    // com a proporção entre a velocidade atual e a velocidade máxima.
+    void AtualizarSomMovimento()
+    {
+        if (audioSourceMovimento == null || clipMovimento == null)
+            return;
+
+        bool deveTocar = currentSpeed > 0.01f;
+
+        if (deveTocar)
+        {
+            float proporcaoVelocidade = Mathf.Clamp01(currentSpeed / maxSpeed);
+
+            audioSourceMovimento.pitch =
+                Mathf.Lerp(pitchMinimo, pitchMaximo, proporcaoVelocidade);
+
+            if (!audioSourceMovimento.isPlaying)
+            {
+                audioSourceMovimento.Play();
+            }
+        }
+        else if (audioSourceMovimento.isPlaying)
+        {
+            audioSourceMovimento.Stop();
+        }
+    }
+
+    // Toca o som de freio uma única vez, no instante em que o freio começa.
+    void TocarSomFreio()
+    {
+        if (audioSourceFreio == null || clipFreio == null)
+            return;
+
+        audioSourceFreio.PlayOneShot(clipFreio);
     }
 
     void SetTrainPosition()
