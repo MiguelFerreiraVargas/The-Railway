@@ -38,13 +38,16 @@ public class ProceduralVegetationSpawner : MonoBehaviour
     public Terrain terrain;
 
     [Header("Vegetação")]
-    public List<VegetationLayer> camadas =
-        new List<VegetationLayer>();
+    public List<VegetationLayer> camadas = new List<VegetationLayer>();
 
     [Header("Chunks")]
     public float spawnRadius = 100f;
     public float despawnRadius = 140f;
     public float chunkSize = 20f;
+
+    [Tooltip("Quantos chunks (no total, somando todas as camadas) podem ser gerados por frame. " +
+             "Baixe esse valor se ainda tiver engasgos; suba se quiser preencher a vegetação mais rápido.")]
+    public int maxChunksGeradosPorFrame = 2;
 
     [Header("Spline / Trilho")]
     public SplineContainer splineContainer;
@@ -56,13 +59,34 @@ public class ProceduralVegetationSpawner : MonoBehaviour
     [Range(50, 1000)]
     public int splineSamples = 500;
 
-    [Header("Exclusão por Layer")]
+    [Header("Exclusão por Layer (casas, props, etc.)")]
     public LayerMask exclusionLayerMask;
-    public Vector3 exclusionBoxSize =
-        new Vector3(4f, 3f, 4f);
 
-    [Header("Outras exclusões")]
+    [Tooltip("Tamanho da caixa de verificação. Deixe a altura (Y) bem generosa " +
+             "para cobrir o telhado da casa mais alta do seu mapa — a checagem " +
+             "é feita na altura do TERRENO, não na altura real da casa.")]
+    public Vector3 exclusionBoxSize = new Vector3(6f, 20f, 6f);
+
+    [Tooltip("Desloca o centro da caixa de exclusão para cima, para garantir que ela " +
+             "cubra a casa inteira mesmo se a base da casa estiver acima do nível do terreno.")]
+    public float exclusionBoxYOffset = 5f;
+
+    [Header("Outras exclusões (colliders manuais)")]
     public Collider[] exclusionZones;
+
+    // ---------- cache do spline ----------
+    private readonly List<Vector3> pontosSplineCache = new List<Vector3>();
+    private bool splineCacheValido = false;
+
+    // ---------- fila de geração ----------
+    private struct PedidoChunk
+    {
+        public VegetationLayer camada;
+        public Vector2Int coord;
+    }
+
+    private readonly Queue<PedidoChunk> filaGeracao = new Queue<PedidoChunk>();
+    private readonly HashSet<(VegetationLayer, Vector2Int)> naFila = new HashSet<(VegetationLayer, Vector2Int)>();
 
     private float checkTimer;
     private const float CHECK_INTERVAL = 0.5f;
@@ -78,6 +102,8 @@ public class ProceduralVegetationSpawner : MonoBehaviour
 
         if (splineSamples < 50)
             splineSamples = 50;
+
+        AtualizarCacheDoSpline();
     }
 
 
@@ -93,74 +119,86 @@ public class ProceduralVegetationSpawner : MonoBehaviour
             checkTimer = CHECK_INTERVAL;
             AtualizarChunks();
         }
+
+        ProcessarFilaDeGeracao();
+    }
+
+
+    // Chame isso manualmente se o spline for movido/editado em runtime.
+    public void AtualizarCacheDoSpline()
+    {
+        pontosSplineCache.Clear();
+
+        if (splineContainer == null || splineContainer.Spline == null)
+        {
+            splineCacheValido = false;
+            return;
+        }
+
+        Spline spline = splineContainer.Spline;
+
+        for (int i = 0; i <= splineSamples; i++)
+        {
+            float t = i / (float)splineSamples;
+            Vector3 ponto = splineContainer.transform.TransformPoint(spline.EvaluatePosition(t));
+            pontosSplineCache.Add(ponto);
+        }
+
+        splineCacheValido = true;
     }
 
 
     private void AtualizarChunks()
     {
-        Vector2Int chunkJogador =
-            MundoParaChunk(player.position);
+        Vector2Int chunkJogador = MundoParaChunk(player.position);
 
-        int raio =
-            Mathf.CeilToInt(spawnRadius / chunkSize);
-
+        int raio = Mathf.CeilToInt(spawnRadius / chunkSize);
 
         foreach (VegetationLayer camada in camadas)
         {
-            if (camada == null ||
-                camada.prefabs == null ||
-                camada.prefabs.Length == 0)
+            if (camada == null || camada.prefabs == null || camada.prefabs.Length == 0)
                 continue;
-
 
             for (int x = -raio; x <= raio; x++)
             {
                 for (int z = -raio; z <= raio; z++)
                 {
-                    Vector2Int coord =
-                        new Vector2Int(
-                            chunkJogador.x + x,
-                            chunkJogador.y + z
-                        );
-
+                    Vector2Int coord = new Vector2Int(chunkJogador.x + x, chunkJogador.y + z);
 
                     if (camada.chunksAtivos.ContainsKey(coord))
                         continue;
 
+                    var chave = (camada, coord);
+                    if (naFila.Contains(chave))
+                        continue;
 
-                    Vector3 centro =
-                        ChunkParaMundo(coord);
+                    Vector3 centro = ChunkParaMundo(coord);
 
-
-                    Vector2 distancia =
-                        new Vector2(
-                            player.position.x - centro.x,
-                            player.position.z - centro.z
-                        );
-
-
-                    if (distancia.magnitude <= spawnRadius)
-                        GerarChunk(camada, coord);
-                }
-            }
-
-
-            List<Vector2Int> remover =
-                new List<Vector2Int>();
-
-
-            foreach (var chunk in camada.chunksAtivos)
-            {
-                Vector3 centro =
-                    ChunkParaMundo(chunk.Key);
-
-
-                Vector2 distancia =
-                    new Vector2(
+                    Vector2 distancia = new Vector2(
                         player.position.x - centro.x,
                         player.position.z - centro.z
                     );
 
+                    if (distancia.magnitude <= spawnRadius)
+                    {
+                        // Em vez de gerar na hora, entra na fila e é processado
+                        // aos poucos em ProcessarFilaDeGeracao().
+                        filaGeracao.Enqueue(new PedidoChunk { camada = camada, coord = coord });
+                        naFila.Add(chave);
+                    }
+                }
+            }
+
+            List<Vector2Int> remover = new List<Vector2Int>();
+
+            foreach (var chunk in camada.chunksAtivos)
+            {
+                Vector3 centro = ChunkParaMundo(chunk.Key);
+
+                Vector2 distancia = new Vector2(
+                    player.position.x - centro.x,
+                    player.position.z - centro.z
+                );
 
                 if (distancia.magnitude > despawnRadius)
                 {
@@ -174,170 +212,98 @@ public class ProceduralVegetationSpawner : MonoBehaviour
                 }
             }
 
-
             foreach (Vector2Int coord in remover)
                 camada.chunksAtivos.Remove(coord);
         }
     }
 
 
-    private void GerarChunk(
-        VegetationLayer camada,
-        Vector2Int coord)
+    // Processa um número limitado de chunks por frame, evitando o pico de
+    // performance que causava o travamento no trem.
+    private void ProcessarFilaDeGeracao()
+    {
+        int processados = 0;
+
+        while (processados < maxChunksGeradosPorFrame && filaGeracao.Count > 0)
+        {
+            PedidoChunk pedido = filaGeracao.Dequeue();
+            naFila.Remove((pedido.camada, pedido.coord));
+
+            // Pode ter saído de alcance ou já ter sido gerado enquanto esperava na fila.
+            if (pedido.camada.chunksAtivos.ContainsKey(pedido.coord))
+                continue;
+
+            GerarChunk(pedido.camada, pedido.coord);
+            processados++;
+        }
+    }
+
+
+    private void GerarChunk(VegetationLayer camada, Vector2Int coord)
     {
         if (terrain == null)
             return;
 
+        Vector3 centro = ChunkParaMundo(coord);
 
-        Vector3 centro =
-            ChunkParaMundo(coord);
+        List<GameObject> objetos = new List<GameObject>();
+        List<Vector3> posicoes = new List<Vector3>();
 
-
-        List<GameObject> objetos =
-            new List<GameObject>();
-
-        List<Vector3> posicoes =
-            new List<Vector3>();
-
-
-        int alvo =
-            Mathf.RoundToInt(
-                camada.maxPerChunkAtFullDensity *
-                camada.density
-            );
-
+        int alvo = Mathf.RoundToInt(camada.maxPerChunkAtFullDensity * camada.density);
 
         if (alvo <= 0)
         {
-            camada.chunksAtivos[coord] =
-                objetos;
-
+            camada.chunksAtivos[coord] = objetos;
             return;
         }
 
-
-        int tentativasMax =
-            Mathf.Max(alvo * 20, 20);
-
+        int tentativasMax = Mathf.Max(alvo * 20, 20);
         int criadas = 0;
 
-
-        for (
-            int i = 0;
-            i < tentativasMax && criadas < alvo;
-            i++)
+        for (int i = 0; i < tentativasMax && criadas < alvo; i++)
         {
-            Vector3 candidato =
-                centro +
-                new Vector3(
-                    Random.Range(
-                        -chunkSize * 0.5f,
-                        chunkSize * 0.5f
-                    ),
-                    0f,
-                    Random.Range(
-                        -chunkSize * 0.5f,
-                        chunkSize * 0.5f
-                    )
-                );
-
+            Vector3 candidato = centro + new Vector3(
+                Random.Range(-chunkSize * 0.5f, chunkSize * 0.5f),
+                0f,
+                Random.Range(-chunkSize * 0.5f, chunkSize * 0.5f)
+            );
 
             Vector3 posFinal;
             Vector3 normal;
 
-
-            if (!PosicaoValida(
-                camada,
-                candidato,
-                posicoes,
-                out posFinal,
-                out normal))
-            {
+            if (!PosicaoValida(camada, candidato, posicoes, out posFinal, out normal))
                 continue;
-            }
 
-
-            GameObject prefab =
-                camada.prefabs[
-                    Random.Range(
-                        0,
-                        camada.prefabs.Length
-                    )
-                ];
-
+            GameObject prefab = camada.prefabs[Random.Range(0, camada.prefabs.Length)];
 
             if (prefab == null)
                 continue;
 
-
             Quaternion rotacao;
-
 
             if (camada.manterEmPe)
             {
-                rotacao =
-                    camada.rotacaoYAleatoria
-                    ?
-                    Quaternion.Euler(
-                        0f,
-                        Random.Range(0f, 360f),
-                        0f
-                    )
-                    :
-                    Quaternion.identity;
+                rotacao = camada.rotacaoYAleatoria
+                    ? Quaternion.Euler(0f, Random.Range(0f, 360f), 0f)
+                    : Quaternion.identity;
             }
             else
             {
-                Quaternion rotacaoTerreno =
-                    Quaternion.FromToRotation(
-                        Vector3.up,
-                        normal
-                    );
-
-
-                Quaternion rotacaoY =
-                    Quaternion.Euler(
-                        0f,
-                        Random.Range(0f, 360f),
-                        0f
-                    );
-
-
-                rotacao =
-                    rotacaoTerreno *
-                    rotacaoY;
+                Quaternion rotacaoTerreno = Quaternion.FromToRotation(Vector3.up, normal);
+                Quaternion rotacaoY = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+                rotacao = rotacaoTerreno * rotacaoY;
             }
-
 
             posFinal.y += camada.offsetY;
 
-
-            GameObject objeto =
-                Instantiate(
-                    prefab,
-                    posFinal,
-                    rotacao,
-                    transform
-                );
-
-
-            objeto.name =
-                prefab.name +
-                "_" +
-                camada.nome;
-
+            GameObject objeto = Instantiate(prefab, posFinal, rotacao, transform);
+            objeto.name = prefab.name + "_" + camada.nome;
 
             if (camada.variarEscala)
             {
-                float escala =
-                    Random.Range(
-                        camada.escalaMin,
-                        camada.escalaMax
-                    );
-
+                float escala = Random.Range(camada.escalaMin, camada.escalaMax);
                 objeto.transform.localScale *= escala;
             }
-
 
             objetos.Add(objeto);
             posicoes.Add(posFinal);
@@ -345,9 +311,7 @@ public class ProceduralVegetationSpawner : MonoBehaviour
             criadas++;
         }
 
-
-        camada.chunksAtivos[coord] =
-            objetos;
+        camada.chunksAtivos[coord] = objetos;
     }
 
 
@@ -361,285 +325,130 @@ public class ProceduralVegetationSpawner : MonoBehaviour
         posFinal = Vector3.zero;
         normal = Vector3.up;
 
-
         if (terrain == null)
             return false;
 
-
-        TerrainData data =
-            terrain.terrainData;
-
+        TerrainData data = terrain.terrainData;
 
         if (data == null)
             return false;
 
+        Vector3 local = pos - terrain.transform.position;
 
-        Vector3 local =
-            pos - terrain.transform.position;
+        float u = local.x / data.size.x;
+        float v = local.z / data.size.z;
 
-
-        float u =
-            local.x / data.size.x;
-
-        float v =
-            local.z / data.size.z;
-
-
-        if (u < 0f ||
-            u > 1f ||
-            v < 0f ||
-            v > 1f)
-        {
+        if (u < 0f || u > 1f || v < 0f || v > 1f)
             return false;
-        }
 
+        pos.y = terrain.SampleHeight(pos) + terrain.transform.position.y;
 
-        pos.y =
-            terrain.SampleHeight(pos) +
-            terrain.transform.position.y;
+        normal = data.GetInterpolatedNormal(u, v);
 
-
-        normal =
-            data.GetInterpolatedNormal(
-                u,
-                v
-            );
-
-
-        if (
-            Vector3.Angle(
-                normal,
-                Vector3.up
-            )
-            >
-            camada.maxSlopeAngle
-        )
-        {
+        if (Vector3.Angle(normal, Vector3.up) > camada.maxSlopeAngle)
             return false;
-        }
 
-
-        float distanciaMinima =
-            camada.minDistanceBetweenInstances *
-            camada.minDistanceBetweenInstances;
-
+        float distanciaMinima = camada.minDistanceBetweenInstances * camada.minDistanceBetweenInstances;
 
         foreach (Vector3 p in existentes)
         {
-            Vector3 diferenca =
-                p - pos;
-
+            Vector3 diferenca = p - pos;
             diferenca.y = 0f;
 
-
-            if (
-                diferenca.sqrMagnitude <
-                distanciaMinima
-            )
-            {
+            if (diferenca.sqrMagnitude < distanciaMinima)
                 return false;
-            }
         }
 
-
-        if (
-            splineContainer != null &&
-            PertoDoSpline(pos)
-        )
-        {
+        if (splineContainer != null && PertoDoSpline(pos))
             return false;
-        }
-
 
         if (exclusionZones != null)
         {
             foreach (Collider col in exclusionZones)
             {
-                if (
-                    col != null &&
-                    col.bounds.Contains(pos)
-                )
-                {
+                if (col != null && col.bounds.Contains(pos))
                     return false;
-                }
             }
         }
 
-
-        if (
-            exclusionLayerMask.value != 0 &&
-            Physics.CheckBox(
-                pos,
-                exclusionBoxSize * 0.5f,
-                Quaternion.identity,
-                exclusionLayerMask
-            )
-        )
+        if (exclusionLayerMask.value != 0)
         {
-            return false;
+            // Centro da caixa deslocado para cima: cobre casas cuja base
+            // está acima (ou abaixo) da altura amostrada do terreno.
+            Vector3 centroCaixa = pos + Vector3.up * exclusionBoxYOffset;
+
+            if (Physics.CheckBox(
+                    centroCaixa,
+                    exclusionBoxSize * 0.5f,
+                    Quaternion.identity,
+                    exclusionLayerMask))
+            {
+                return false;
+            }
         }
 
-
         posFinal = pos;
-
         return true;
     }
 
 
     private bool PertoDoSpline(Vector3 pos)
     {
-        if (splineContainer == null)
+        if (!splineCacheValido || pontosSplineCache.Count < 2)
             return false;
 
-
-        Spline spline =
-            splineContainer.Spline;
-
-
-        if (spline == null)
-            return false;
-
-
-        float raio =
-            splineExclusionRadius;
-
+        float raio = splineExclusionRadius;
 
         if (raio <= 0f)
             return false;
 
+        float raioSqr = raio * raio;
 
-        float raioSqr =
-            raio * raio;
-
-
-        Vector3 anterior =
-            splineContainer.transform.TransformPoint(
-                spline.EvaluatePosition(0f)
-            );
-
-
-        for (
-            int i = 1;
-            i <= splineSamples;
-            i++)
+        for (int i = 1; i < pontosSplineCache.Count; i++)
         {
-            float t =
-                i / (float)splineSamples;
-
-
-            Vector3 atual =
-                splineContainer.transform.TransformPoint(
-                    spline.EvaluatePosition(t)
-                );
-
-
-            if (
-                DistanciaSegmentoXZ(
-                    pos,
-                    anterior,
-                    atual
-                )
-                <= raioSqr
-            )
-            {
+            if (DistanciaSegmentoXZ(pos, pontosSplineCache[i - 1], pontosSplineCache[i]) <= raioSqr)
                 return true;
-            }
-
-
-            anterior = atual;
         }
-
 
         return false;
     }
 
 
-    private float DistanciaSegmentoXZ(
-        Vector3 ponto,
-        Vector3 a,
-        Vector3 b)
+    private float DistanciaSegmentoXZ(Vector3 ponto, Vector3 a, Vector3 b)
     {
-        Vector3 p =
-            new Vector3(
-                ponto.x,
-                0f,
-                ponto.z
-            );
+        Vector3 p = new Vector3(ponto.x, 0f, ponto.z);
+        Vector3 A = new Vector3(a.x, 0f, a.z);
+        Vector3 B = new Vector3(b.x, 0f, b.z);
 
-
-        Vector3 A =
-            new Vector3(
-                a.x,
-                0f,
-                a.z
-            );
-
-
-        Vector3 B =
-            new Vector3(
-                b.x,
-                0f,
-                b.z
-            );
-
-
-        Vector3 AB =
-            B - A;
-
-
-        float comprimento =
-            AB.sqrMagnitude;
-
+        Vector3 AB = B - A;
+        float comprimento = AB.sqrMagnitude;
 
         if (comprimento < 0.0001f)
             return (p - A).sqrMagnitude;
 
+        float t = Vector3.Dot(p - A, AB) / comprimento;
+        t = Mathf.Clamp01(t);
 
-        float t =
-            Vector3.Dot(
-                p - A,
-                AB
-            ) / comprimento;
-
-
-        t =
-            Mathf.Clamp01(t);
-
-
-        Vector3 pontoMaisProximo =
-            A + AB * t;
-
-
-        return (
-            p - pontoMaisProximo
-        ).sqrMagnitude;
+        Vector3 pontoMaisProximo = A + AB * t;
+        return (p - pontoMaisProximo).sqrMagnitude;
     }
 
 
     private Vector2Int MundoParaChunk(Vector3 pos)
     {
         return new Vector2Int(
-            Mathf.FloorToInt(
-                pos.x / chunkSize
-            ),
-            Mathf.FloorToInt(
-                pos.z / chunkSize
-            )
+            Mathf.FloorToInt(pos.x / chunkSize),
+            Mathf.FloorToInt(pos.z / chunkSize)
         );
     }
 
 
-    private Vector3 ChunkParaMundo(
-        Vector2Int coord)
+    private Vector3 ChunkParaMundo(Vector2Int coord)
     {
         return new Vector3(
-            coord.x * chunkSize +
-            chunkSize * 0.5f,
-
+            coord.x * chunkSize + chunkSize * 0.5f,
             0f,
-
-            coord.y * chunkSize +
-            chunkSize * 0.5f
+            coord.y * chunkSize + chunkSize * 0.5f
         );
     }
 
@@ -659,5 +468,8 @@ public class ProceduralVegetationSpawner : MonoBehaviour
 
             camada.chunksAtivos.Clear();
         }
+
+        filaGeracao.Clear();
+        naFila.Clear();
     }
 }
