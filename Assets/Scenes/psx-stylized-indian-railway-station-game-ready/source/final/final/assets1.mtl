@@ -1,0 +1,982 @@
+# Blender 4.5.0 MTL File: 'assets1.blend'
+# www.blender.org
+
+newmtl antenna
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/steel.png
+
+newmtl antenna.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/steel.png
+
+newmtl beam_base
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/beam_base.png
+
+newmtl beam_base.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/beam_base.png
+
+newmtl bimal
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/bimal.png
+
+newmtl blue_bin
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/blue_bin.png
+
+newmtl blue_bin.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/blue_bin.png
+
+newmtl building
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/building.png
+
+newmtl canister
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_base.png
+
+newmtl canister.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_base.png
+
+newmtl canister.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_base.png
+
+newmtl canister.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_base.png
+
+newmtl canister_holder
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_holder.png
+
+newmtl canister_holder.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_holder.png
+
+newmtl canister_holder.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_holder.png
+
+newmtl canister_holder.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_holder.png
+
+newmtl canister_tap
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_tap.png
+
+newmtl canister_tap.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_tap.png
+
+newmtl canister_tap.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_tap.png
+
+newmtl canister_tap.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/canister_tap.png
+
+newmtl coach_no
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/coachno.png
+
+newmtl coach_no.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/coachno.png
+
+newmtl digital_signal
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/digital_signal.png
+
+newmtl digital_signal.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/digital_signal.png
+
+newmtl door
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/door.png
+
+newmtl door.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/door.png
+
+newmtl driking_water_tap
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/driking_water_tap.png
+
+newmtl driking_water_tap.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/driking_water_tap.png
+
+newmtl driking_water_tap.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/driking_water_tap.png
+
+newmtl green_bin
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/green_bin.png
+
+newmtl green_bin.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/green_bin.png
+
+newmtl ground
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/track_ground.png
+
+newmtl joints
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/joints.png
+
+newmtl joints.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/joints.png
+
+newmtl joints.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/joints.png
+
+newmtl joints.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/joints.png
+
+newmtl main_engine
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/trainengine.png
+
+newmtl metal_beam
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/metal_beam.png
+
+newmtl metal_beam.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/metal_beam.png
+
+newmtl mokia
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/mokia.png
+
+newmtl nazar
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/chilli.png
+map_d /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/chilli.png
+
+newmtl paper_cup
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/paper_cup.png
+
+newmtl paper_cup.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/paper_cup.png
+
+newmtl paper_cup.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/paper_cup.png
+
+newmtl paper_cup.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/paper_cup.png
+
+newmtl paper_cup.004
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/paper_cup.png
+
+newmtl plate
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (1).png
+map_d /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (1).png
+
+newmtl plate.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (4).png
+map_d /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (4).png
+
+newmtl plate.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (2).png
+map_d /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (2).png
+
+newmtl plate.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (3).png
+map_d /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/plater (3).png
+
+newmtl platform
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/platform.png
+
+newmtl room_bottom
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/room_bottom.png
+
+newmtl room_bottom.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/room_bottom.png
+
+newmtl room_top
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/room_top1.png
+
+newmtl room_top.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/room_top.png
+
+newmtl shop
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/shop.png
+
+newmtl shop_cover
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/shop_cover.png
+
+newmtl shop_cover.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/shopcover.png
+
+newmtl shop_cover.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/shopcover.png
+
+newmtl stall_base
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/stallwalls1.png
+
+newmtl station_board
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/station_board1.png
+
+newmtl station_roof
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/station_roof.png
+
+newmtl station_sign
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/station_sign.png
+
+newmtl station_sign.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/station_sign.png
+
+newmtl tap
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/tap.png
+
+newmtl tap.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/tap.png
+
+newmtl tap.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/tap.png
+
+newmtl tap.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/tap.png
+
+newmtl toilet_sign
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/washroom_sign.png
+
+newmtl train_base
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/trainbase.png
+
+newmtl train_base.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/trainbase.png
+
+newmtl train_door
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/train.png
+
+newmtl train_door.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/train.png
+
+newmtl train_door.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/train.png
+
+newmtl train_door.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/rawtextures/train.png
+
+newmtl train_door_handle
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/traindoorhandle.png
+
+newmtl train_door_handle.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/traindoorhandle.png
+
+newmtl train_door_handle.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/traindoorhandle.png
+
+newmtl train_door_handle.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/traindoorhandle.png
+
+newmtl train_handlebar
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_handlebar.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_handlebar.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_handlebar.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_handlebar.004
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_handlebar.005
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_handlebar.006
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_handlebar.007
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_handlebar.png
+
+newmtl train_name
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_name1.png
+
+newmtl train_name.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_name1.png
+
+newmtl train_name.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_name1.png
+
+newmtl train_name.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_name1.png
+
+newmtl train_wheels
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_wheels.png
+
+newmtl train_wheels.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/train_wheels.png
+
+newmtl trainend
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/trainend.png
+
+newmtl walls
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/station_walls.png
+
+newmtl water_fillingarea
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/water_fillingarea.png
+
+newmtl window
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/windows.png
+
+newmtl window.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd /home/shubhayuk_15/Downloads/GIC/chaiwalekaka/finaltextures/windows.png
