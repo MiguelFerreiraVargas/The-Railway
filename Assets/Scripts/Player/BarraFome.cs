@@ -93,8 +93,6 @@ public class BarraFome : MonoBehaviour
         AtualizarBarra();
     }
 
-    // Come um item direto do PlayerInventory (ex: "carne_cozida"), se ele estiver
-    // configurado em itensComestiveis. Retorna false se não tinha o item.
     public bool ComerItem(string itemId)
     {
         if (PlayerInventory.Instance == null || itensComestiveis == null)
