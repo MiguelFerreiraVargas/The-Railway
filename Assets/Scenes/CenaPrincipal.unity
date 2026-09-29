@@ -1714,6 +1714,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainCamera 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7207841458902050127, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+      propertyPath: m_Cameras.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7706937907835044767, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
       propertyPath: m_CullingMask.m_Bits
       value: 4294967295
@@ -1721,6 +1725,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 7919426493075711450, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+    - {fileID: 2073902371796020940, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
+    - {fileID: 6581103898658543251, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 6429307366560079945, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
       insertIndex: -1
@@ -4148,13 +4154,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 1178421823}
 --- !u!65 &1178421822
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4906,23 +4907,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739a5b919a9b0df44abf34468f20a679, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerArmActions
-  interactionText: {fileID: 1722602545}
-  interactionTextTMP: {fileID: 1722602547}
-  animator: {fileID: 1501585830}
-  playerCamera: {fileID: 51542768}
-  attackAction: {fileID: 1120369429361536294, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  interactAction: {fileID: -211143050093916686, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  storeAction: {fileID: 8250140606528731055, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  attackRange: 2
-  attackDamage: 25
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 128
-  interactRange: 2.5
-  interactableLayer:
-    serializedVersion: 2
-    m_Bits: 256
-  guardHoldTime: 3
 --- !u!114 &1308581329
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5200,11 +5184,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b34cc2d028d85eb4295fec883392d99f, type: 3}
---- !u!95 &1501585830 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 8405808576020348753, guid: f01d1caa809862c4aa5ee59c3bdf7845, type: 3}
-  m_PrefabInstance: {fileID: 389580482}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1528474611
 GameObject:
   m_ObjectHideFlags: 0
@@ -6929,13 +6908,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 763761094373053141}
 --- !u!1 &771317150562699243
 GameObject:
   m_ObjectHideFlags: 0
@@ -7022,13 +6996,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 790395582260103468}
 --- !u!4 &843256217552576771
 Transform:
   m_ObjectHideFlags: 0
@@ -7788,13 +7757,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 1805115799803523558}
 --- !u!33 &1816500126454798434
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -7994,13 +7958,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 2127099864612982351}
 --- !u!4 &2146094517747507574
 Transform:
   m_ObjectHideFlags: 0
@@ -8771,13 +8730,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 3190729122108667723}
 --- !u!33 &3238710142016853985
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -8902,13 +8856,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 3447286343207934303}
 --- !u!33 &3509664927440107197
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -9437,13 +9386,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 4068037211200002126}
 --- !u!1 &4096595711673426616
 GameObject:
   m_ObjectHideFlags: 0
@@ -9514,13 +9458,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 4096595711673426617}
 --- !u!23 &4122566464894179831
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9652,13 +9591,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 4152273852927387456}
 --- !u!1 &4195066358349899663
 GameObject:
   m_ObjectHideFlags: 0
@@ -9745,13 +9679,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 4200456991337681229}
 --- !u!23 &4246085375444456246
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10025,13 +9954,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 4471817985114690586}
 --- !u!1 &4573144446832552055
 GameObject:
   m_ObjectHideFlags: 0
@@ -10102,13 +10026,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 4573144446832552056}
 --- !u!23 &4586933859880734880
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10642,13 +10561,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 5335473128146236627}
 --- !u!1 &5364300082235824553
 GameObject:
   m_ObjectHideFlags: 0
@@ -10719,13 +10633,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 5364300082235824554}
 --- !u!1 &5385602212108136035
 GameObject:
   m_ObjectHideFlags: 0
@@ -10814,13 +10723,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 5406149003570878578}
 --- !u!4 &5434128861174117554
 Transform:
   m_ObjectHideFlags: 0
@@ -10980,13 +10884,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 5649916133560963645}
 --- !u!23 &5664487522646139696
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11722,13 +11621,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 6346456234412659274}
 --- !u!23 &6347669579461747597
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11845,13 +11739,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 6414475179179399278}
 --- !u!1 &6463266999974970076
 GameObject:
   m_ObjectHideFlags: 0
@@ -11948,13 +11837,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 6555550777691816132}
 --- !u!1 &6557402271846374754
 GameObject:
   m_ObjectHideFlags: 0
@@ -12025,13 +11909,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 6557402271846374755}
 --- !u!1 &6577375153377437615
 GameObject:
   m_ObjectHideFlags: 0
@@ -12268,13 +12147,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 6770471732950765209}
 --- !u!23 &6795780806176906717
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12974,13 +12848,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 7745639416968650666}
 --- !u!23 &7755489572913948542
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -13147,13 +13016,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 7917423061786007295}
 --- !u!4 &7946270978133927111
 Transform:
   m_ObjectHideFlags: 0
@@ -13744,13 +13608,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 8848928283327941081}
 --- !u!4 &8922834852094207782
 Transform:
   m_ObjectHideFlags: 0
@@ -13834,13 +13693,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e587aa822792de34790b671202f19d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleItem
-  itemId: item_teste
+  itemName: Graveto
   amount: 1
-  isComida: 1
-  restauraFome: 20
-  collectEffectPrefab: {fileID: 0}
-  consumeEffectPrefab: {fileID: 0}
-  outline: {fileID: 8944178726514858052}
 --- !u!33 &8985982376231653047
 MeshFilter:
   m_ObjectHideFlags: 0
