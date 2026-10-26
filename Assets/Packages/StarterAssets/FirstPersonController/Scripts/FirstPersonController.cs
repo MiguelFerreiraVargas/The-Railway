@@ -132,7 +132,6 @@ namespace StarterAssets
 
         private void Update()
         {
-            JumpAndGravity();
             GroundedCheck();
             Move();
             AtualizarStamina();
@@ -339,48 +338,6 @@ namespace StarterAssets
                     0.0f
                 ) * Time.deltaTime
             );
-        }
-
-        private void JumpAndGravity()
-        {
-            if (Grounded)
-            {
-                _fallTimeoutDelta = FallTimeout;
-
-                if (_verticalVelocity < 0.0f)
-                {
-                    _verticalVelocity = -2f;
-                }
-
-                if (_input.jump && _jumpTimeoutDelta <= 0.0f)
-                {
-                    _verticalVelocity =
-                        Mathf.Sqrt(
-                            JumpHeight * -2f * Gravity
-                        );
-                }
-
-                if (_jumpTimeoutDelta >= 0.0f)
-                {
-                    _jumpTimeoutDelta -= Time.deltaTime;
-                }
-            }
-            else
-            {
-                _jumpTimeoutDelta = JumpTimeout;
-
-                if (_fallTimeoutDelta >= 0.0f)
-                {
-                    _fallTimeoutDelta -= Time.deltaTime;
-                }
-
-                _input.jump = false;
-            }
-
-            if (_verticalVelocity < _terminalVelocity)
-            {
-                _verticalVelocity += Gravity * Time.deltaTime;
-            }
         }
 
         private static float ClampAngle(
