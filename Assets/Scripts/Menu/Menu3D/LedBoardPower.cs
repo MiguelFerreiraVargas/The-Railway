@@ -44,7 +44,7 @@ public class LedBoardPower : MonoBehaviour
     private const int SampleRate = 44100;
 
     private readonly List<List<CanvasRenderer>> rows = new List<List<CanvasRenderer>>();
-    private AudioClip onClip, offClip, humClip;
+    private AudioClip onClip, offClip, humClip, errorClip;
     private AudioSource humSource;
     private float lightBase;
     private Coroutine routine;
@@ -61,6 +61,7 @@ public class LedBoardPower : MonoBehaviour
         onClip = BuildOnClip();
         offClip = BuildOffClip();
         humClip = BuildHumLoop();
+        errorClip = BuildErrorClip();
 
         if (audioSource != null && humVolume > 0f)
         {
@@ -91,6 +92,12 @@ public class LedBoardPower : MonoBehaviour
         if (!IsOn) return;
         IsOn = false;
         Restart(OffRoutine());
+    }
+
+    /// <summary>Bipe duplo de erro (ex.: slot vazio). Os bipes caem em 0s e 0,28s.</summary>
+    public void PlayError()
+    {
+        Play(errorClip);
     }
 
     public void SetInstant(bool on)
@@ -321,6 +328,45 @@ public class LedBoardPower : MonoBehaviour
         }
         Normalize(data, 0.6f);
         var clip = AudioClip.Create("Zumbido do Painel", n, 1, SampleRate, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
+
+    private AudioClip BuildErrorClip()
+    {
+        // Dois bipes graves e ásperos, como um painel recusando o comando.
+        float[] starts = { 0f, 0.28f };
+        const float beep = 0.16f;
+        int n = Mathf.CeilToInt(0.55f * SampleRate);
+        var data = new float[n];
+        var rnd = new System.Random(11);
+
+        for (int i = 0; i < n; i++)
+        {
+            float t = i / (float)SampleRate;
+            float s = 0f;
+            float noise = (float)(rnd.NextDouble() * 2.0 - 1.0);
+
+            foreach (float st in starts)
+            {
+                float d = t - st;
+                if (d < 0f || d > beep + 0.05f) continue;
+
+                // envelope com ataque e soltura curtos
+                float env = Mathf.Clamp01(d / 0.004f) * Mathf.Clamp01((beep - d) / 0.012f);
+                float p = 2f * Mathf.PI * 180f * d;
+                float square = Mathf.Sign(Mathf.Sin(p)) * 0.6f + Mathf.Sin(2f * p) * 0.25f + Mathf.Sin(3f * p) * 0.15f;
+                s += square * env * 0.5f;
+
+                // estalo no início de cada bipe
+                s += noise * Mathf.Exp(-d / 0.003f) * 0.4f;
+            }
+
+            data[i] = s;
+        }
+
+        Normalize(data, 0.65f);
+        var clip = AudioClip.Create("Painel Erro", n, 1, SampleRate, false);
         clip.SetData(data, 0);
         return clip;
     }

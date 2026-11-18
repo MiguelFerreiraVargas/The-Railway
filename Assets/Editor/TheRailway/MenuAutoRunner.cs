@@ -41,7 +41,7 @@ public static class MenuAutoRunner
 
         DateTime newest = DateTime.MinValue;
 
-        foreach (var dir in new[] { "Assets/Editor/TheRailway", "Assets/Scripts/Menu" })
+        foreach (var dir in new[] { "Assets/Editor/TheRailway", "Assets/Scripts/Menu", "Assets/Scripts/Pause" })
         {
             if (!Directory.Exists(dir)) continue;
             foreach (var file in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
@@ -91,6 +91,58 @@ public static class MenuAutoRunner
         {
             File.Delete(CommandFile);
             MenuPlayTest.Start();
+            return;
+        }
+
+        if (command == "movepause")
+        {
+            File.Delete(CommandFile);
+            var mlog = new StringBuilder();
+            const string oldPath = "Assets/Prefabs/Menu de Pausa.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(oldPath) != null &&
+                AssetDatabase.LoadAssetAtPath<GameObject>(PauseMenuBuilder.PrefabPath) == null)
+            {
+                string error = AssetDatabase.MoveAsset(oldPath, PauseMenuBuilder.PrefabPath);
+                mlog.AppendLine(string.IsNullOrEmpty(error) ? "movido para " + PauseMenuBuilder.PrefabPath : "ERRO ao mover: " + error);
+            }
+            else
+            {
+                mlog.AppendLine("nada a mover (já está em " + PauseMenuBuilder.PrefabPath + "?) existe: " +
+                                (AssetDatabase.LoadAssetAtPath<GameObject>(PauseMenuBuilder.PrefabPath) != null));
+            }
+            mlog.AppendLine("ok");
+            WriteStatus(mlog);
+            return;
+        }
+
+        if (command == "prefabtest")
+        {
+            File.Delete(CommandFile);
+            PausePrefabTest.Start();
+            return;
+        }
+
+        if (command == "pausetest")
+        {
+            File.Delete(CommandFile);
+            PausePlayTest.Start();
+            return;
+        }
+
+        if (command == "pause")
+        {
+            File.Delete(CommandFile);
+            var plog = new StringBuilder();
+            plog.AppendLine($"comando: pause  ({DateTime.Now:HH:mm:ss})");
+            try
+            {
+                bool dirty = false;
+                for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                    if (EditorSceneManager.GetSceneAt(i).isDirty) { plog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); dirty = true; }
+                if (!dirty) { PauseMenuBuilder.BuildForTestScene(plog); plog.AppendLine("ok"); }
+            }
+            catch (Exception e) { plog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(plog);
             return;
         }
 

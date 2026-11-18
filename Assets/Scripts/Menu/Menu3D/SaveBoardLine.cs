@@ -9,6 +9,9 @@ public class SaveBoardLine : MonoBehaviour
     [SerializeField] private int slot;
     [SerializeField] private TMP_Text label;
 
+    public int Slot => slot;
+    public TMP_Text Label => label;
+
     private void OnEnable()
     {
         Refresh();

@@ -658,12 +658,12 @@ public static class Menu3DBuilder
         var mc = main.canvas;
         float W = main.size.x, H = main.size.y;
 
-        Text(mc, "Titulo", "PARTIDAS", ledFont, 78, Led, new Vector2(-W / 2 + 60, H / 2 - 70), new Vector2(700, 100), TextAlignmentOptions.Left);
+        Text(mc, "Titulo", "HORARIOS", ledFont, 78, Led, new Vector2(-W / 2 + 60, H / 2 - 70), new Vector2(700, 100), TextAlignmentOptions.Left);
         var clock = Text(mc, "Relogio", "00:00", ledFont, 78, Led, new Vector2(W / 2 - 60, H / 2 - 70), new Vector2(400, 100), TextAlignmentOptions.Right);
         var clk = clock.gameObject.AddComponent<BoardClock>();
         SetRef(clk, "label", clock);
         Bar(mc, "Linha", new Vector2(0, H / 2 - 130), new Vector2(W - 100, 5), Led);
-        Text(mc, "Colunas", "NO  DESTINO", ledFont, 46, LedDim, new Vector2(-W / 2 + 60, H / 2 - 175), new Vector2(W - 120, 60), TextAlignmentOptions.Left);
+        Text(mc, "Colunas", "ESTAÇÃO", ledFont, 46, LedDim, new Vector2(-W / 2 + 60, H / 2 - 175), new Vector2(W - 120, 60), TextAlignmentOptions.Left);
 
         var b1 = BoardLine(mc, "Jogar", "01  JOGAR", ledFont, H / 2 - 270, W);
         var b2 = BoardLine(mc, "Carregar", "02  CARREGAR", ledFont, H / 2 - 390, W);
@@ -682,7 +682,7 @@ public static class Menu3DBuilder
 
         Text(lc, "Titulo", "CARREGAR VIAGEM", ledFont, 70, Led, new Vector2(-W / 2 + 60, H / 2 - 70), new Vector2(W - 120, 100), TextAlignmentOptions.Left);
         Bar(lc, "Linha", new Vector2(0, H / 2 - 130), new Vector2(W - 100, 5), Led);
-        Text(lc, "Colunas", "NO  NOME       TEMPO  DATA", ledFont, 46, LedDim, new Vector2(-W / 2 + 60, H / 2 - 175), new Vector2(W - 120, 60), TextAlignmentOptions.Left);
+        Text(lc, "Colunas", "       TEMPO  DATA", ledFont, 46, LedDim, new Vector2(-W / 2 + 60, H / 2 - 175), new Vector2(W - 120, 60), TextAlignmentOptions.Left);
 
         var slots = new List<Button>();
         var lines = new List<SaveBoardLine>();
