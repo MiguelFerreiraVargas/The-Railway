@@ -38998,7 +38998,7 @@ MonoBehaviour:
   panelLight: {fileID: 2130983575}
   audioSource: {fileID: 794236269}
   rowInterval: 0.06
-  volume: 0.8
+  volume: 0.35
   humVolume: 0.035
   humFrequency: 100
 --- !u!82 &794236269
@@ -60529,6 +60529,11 @@ MonoBehaviour:
   mainPower: {fileID: 794236268}
   loadPower: {fileID: 2053832096}
   switchPowerDelay: 0.55
+  emptySlotMessage: "VOC\xCA AINDA N\xC3O TEM NENHUMA PARTIDA"
+  emptyMessageY: -195
+  emptyMessageFontSize: 44
+  emptyMessageDuration: 2.6
+  loadHints: ENTER  CARREGAR      DEL  APAGAR      ESC  VOLTAR
   fade: {fileID: 1404520089}
   prompt: {fileID: 1588220560}
   hints: {fileID: 1760517173}
@@ -105911,7 +105916,7 @@ MonoBehaviour:
   panelLight: {fileID: 1439506578}
   audioSource: {fileID: 2053832097}
   rowInterval: 0.06
-  volume: 0.8
+  volume: 0.35
   humVolume: 0.035
   humFrequency: 100
 --- !u!82 &2053832097
