@@ -88,8 +88,17 @@ public class Menu3DController : MonoBehaviour
         targetPose = mainPose;
         GameSettings.ApplyVolume();
 
+        // O menu sempre usa o mouse livre (ao voltar do jogo ele pode vir travado).
+        FreeCursor();
+
         hintsText = hints != null ? hints.GetComponentInChildren<TMP_Text>(true) : null;
         mainHints = hintsText != null ? hintsText.text : "";
+    }
+
+    private static void FreeCursor()
+    {
+        if (Cursor.lockState != CursorLockMode.None) Cursor.lockState = CursorLockMode.None;
+        if (!Cursor.visible) Cursor.visible = true;
     }
 
     private void OnDestroy()
@@ -116,6 +125,7 @@ public class Menu3DController : MonoBehaviour
 
             case State.Main:
             case State.Load:
+                FreeCursor();
                 MoveCamera();
                 KeepSelection();
                 if (state == State.Load)
@@ -189,7 +199,7 @@ public class Menu3DController : MonoBehaviour
 
         PlayClip(confirmClip);
         SaveGameLoader.selectedSlot = -1;
-        StartCoroutine(Leave(() => SceneManager.LoadScene(gameScene)));
+        StartCoroutine(Leave(() => LoadingScreen.Load(gameScene)));
     }
 
     public void OpenLoad()
@@ -244,7 +254,7 @@ public class Menu3DController : MonoBehaviour
 
         PlayClip(confirmClip);
         SaveGameLoader.selectedSlot = slot;
-        StartCoroutine(Leave(() => SceneManager.LoadScene(gameScene)));
+        StartCoroutine(Leave(() => LoadingScreen.Load(gameScene)));
     }
 
     public void Quit()

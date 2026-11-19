@@ -47,6 +47,55 @@ public static class PauseMenuBuilder
         Capture(log);
     }
 
+    public const string MainScenePath = "Assets/Scenes/CenaPrincipal.unity";
+
+    /// <summary>
+    /// Coloca o prefab da pausa (já pronto, sem reconstruir) numa cena e confere o save dela.
+    /// </summary>
+    public static void InstallPrefabInScene(string scenePath, StringBuilder log)
+    {
+        var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+        if (prefab == null) { log.AppendLine("ERRO: prefab não encontrado em " + PrefabPath); return; }
+
+        var existing = Object.FindObjectsByType<PauseMenu>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (existing.Length == 0)
+        {
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+            go.name = prefab.name;
+            log.AppendLine("prefab da pausa colocado na cena " + scene.name);
+        }
+        else
+        {
+            log.AppendLine($"a cena já tinha {existing.Length} pausa(s); nada duplicado");
+        }
+
+        var saver = Object.FindFirstObjectByType<GameSaveController>();
+        var fpc = Object.FindFirstObjectByType<StarterAssets.FirstPersonController>();
+        if (saver != null)
+        {
+            if (saver.player == null && fpc != null) { saver.player = fpc.transform; log.AppendLine("GameSaveController: jogador ligado"); }
+            if (saver.playTimeTracker == null)
+            {
+                var tracker = Object.FindFirstObjectByType<PlayTimeTracker>();
+                if (tracker == null) tracker = saver.gameObject.AddComponent<PlayTimeTracker>();
+                saver.playTimeTracker = tracker;
+                log.AppendLine("GameSaveController: contador de tempo ligado");
+            }
+            EditorUtility.SetDirty(saver);
+            log.AppendLine($"GameSaveController em \"{saver.name}\": jogador={(saver.player != null ? saver.player.name : "NENHUM")}, tempo={(saver.playTimeTracker != null ? saver.playTimeTracker.name : "NENHUM")}");
+        }
+        else
+        {
+            log.AppendLine("sem GameSaveController: a pausa salva direto pelo jogador " + (fpc != null ? fpc.name : "(NÃO ACHADO)"));
+        }
+
+        log.AppendLine($"EventSystem na cena: {Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None).Length} (se 0, a pausa cria ao rodar)");
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        log.AppendLine("cena salva: " + scenePath);
+    }
+
     public static void InstallInOpenScene(StringBuilder log)
     {
         foreach (var old in Object.FindObjectsByType<PauseMenu>(FindObjectsInactive.Include, FindObjectsSortMode.None))

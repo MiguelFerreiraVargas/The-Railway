@@ -41,7 +41,7 @@ public static class MenuAutoRunner
 
         DateTime newest = DateTime.MinValue;
 
-        foreach (var dir in new[] { "Assets/Editor/TheRailway", "Assets/Scripts/Menu", "Assets/Scripts/Pause" })
+        foreach (var dir in new[] { "Assets/Editor/TheRailway", "Assets/Scripts/Menu", "Assets/Scripts/Pause", "Assets/Scripts/Loading" })
         {
             if (!Directory.Exists(dir)) continue;
             foreach (var file in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
@@ -119,6 +119,54 @@ public static class MenuAutoRunner
         {
             File.Delete(CommandFile);
             PausePrefabTest.Start();
+            return;
+        }
+
+        if (command == "loading")
+        {
+            File.Delete(CommandFile);
+            var llog = new StringBuilder();
+            llog.AppendLine($"comando: loading  ({DateTime.Now:HH:mm:ss})");
+            bool dirtyScene = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { llog.AppendLine("PARADO: cena com mudanças não salvas."); dirtyScene = true; }
+            if (!dirtyScene)
+            {
+                try { LoadingScreenBuilder.Build(llog); LoadingScreenBuilder.Capture(llog); llog.AppendLine("ok"); }
+                catch (Exception e) { llog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            }
+            WriteStatus(llog);
+            return;
+        }
+
+        if (command == "loadtest")
+        {
+            File.Delete(CommandFile);
+            LoadingPlayTest.Start();
+            return;
+        }
+
+        if (command == "pausemain")
+        {
+            File.Delete(CommandFile);
+            var ilog = new StringBuilder();
+            ilog.AppendLine($"comando: pausemain  ({DateTime.Now:HH:mm:ss})");
+            bool dirty = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { ilog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); dirty = true; }
+            if (!dirty)
+            {
+                try { PauseMenuBuilder.InstallPrefabInScene(PauseMenuBuilder.MainScenePath, ilog); ilog.AppendLine("ok"); }
+                catch (Exception e) { ilog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            }
+            WriteStatus(ilog);
+            return;
+        }
+
+        if (command == "pausetest:main")
+        {
+            File.Delete(CommandFile);
+            PausePlayTest.Start(PauseMenuBuilder.MainScenePath);
             return;
         }
 

@@ -103,6 +103,10 @@ public class PauseMenu : MonoBehaviour
 
     private void Update()
     {
+        // Durante a tela de carregamento o Esc não pausa (o mundo já está congelado).
+        if (LoadingScreen.IsLoading)
+            return;
+
         if (PausePressed())
         {
             if (state == State.Closed)
@@ -233,7 +237,9 @@ public class PauseMenu : MonoBehaviour
 
         PlayClip(confirmClip);
         Time.timeScale = 1f;
-        state = State.Closed;
+        // Continua "pausado" até a cena trocar: senão a câmera do trem (e outros
+        // scripts do jogo) travam o mouse de novo no último frame antes do menu.
+        timeScaleBeforePause = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         SceneManager.LoadScene(mainMenuScene);

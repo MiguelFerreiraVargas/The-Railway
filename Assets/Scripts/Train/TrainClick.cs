@@ -11,6 +11,10 @@ public class TrainClick : MonoBehaviour
 
     void Update()
     {
+        // Com o jogo pausado (Esc), o E nao entra/sai do trem.
+        if (PauseMenu.IsPaused)
+            return;
+
         if (UnityEngine.InputSystem.Keyboard.current == null)
             return;
 

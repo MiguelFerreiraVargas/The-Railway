@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Splines;
 
-public class ProceduralVegetationSpawner : MonoBehaviour
+public class ProceduralVegetationSpawner : MonoBehaviour, ILoadingProgress
 {
     [System.Serializable]
     public class VegetationLayer
@@ -90,6 +90,33 @@ public class ProceduralVegetationSpawner : MonoBehaviour
 
     private float checkTimer;
     private const float CHECK_INTERVAL = 0.5f;
+
+    // ---------- tela de carregamento ----------
+    private bool verificouUmaVez;
+    private int maiorFila;
+    private int chunksPorFrameNormal = -1;
+
+    [Header("Tela de carregamento")]
+    [Tooltip("Chunks por frame enquanto a tela de carregamento está na frente (gera o mapa mais rápido escondido).")]
+    public int chunksPorFrameNoCarregamento = 12;
+
+    public bool IsLoaded => player == null || (verificouUmaVez && filaGeracao.Count == 0);
+    public float LoadingProgress => maiorFila <= 0 ? (IsLoaded ? 1f : 0f) : 1f - filaGeracao.Count / (float)maiorFila;
+    public string LoadingLabel => "GERANDO A FLORESTA";
+
+    public void SetLoadingBoost(bool on)
+    {
+        if (on)
+        {
+            if (chunksPorFrameNormal < 0) chunksPorFrameNormal = maxChunksGeradosPorFrame;
+            maxChunksGeradosPorFrame = Mathf.Max(chunksPorFrameNormal, chunksPorFrameNoCarregamento);
+        }
+        else if (chunksPorFrameNormal >= 0)
+        {
+            maxChunksGeradosPorFrame = chunksPorFrameNormal;
+            chunksPorFrameNormal = -1;
+        }
+    }
 
 
     private void Start()
@@ -215,6 +242,9 @@ public class ProceduralVegetationSpawner : MonoBehaviour
             foreach (Vector2Int coord in remover)
                 camada.chunksAtivos.Remove(coord);
         }
+
+        verificouUmaVez = true;
+        maiorFila = Mathf.Max(maiorFila, filaGeracao.Count);
     }
 
 

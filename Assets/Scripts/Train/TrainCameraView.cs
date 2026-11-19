@@ -73,6 +73,10 @@ public class TrainCameraView : MonoBehaviour
 
     void Update()
     {
+        // Com o jogo pausado (Esc), nao mexe na camera nem trava o mouse.
+        if (PauseMenu.IsPaused)
+            return;
+
         if (UnityEngine.InputSystem.Keyboard.current == null)
             return;
 

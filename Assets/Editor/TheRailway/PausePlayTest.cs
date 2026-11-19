@@ -32,7 +32,9 @@ public static class PausePlayTest
             Begin();
     }
 
-    public static void Start()
+    public static void Start() => Start(PauseMenuBuilder.TestScenePath);
+
+    public static void Start(string scenePath)
     {
         for (int i = 0; i < EditorSceneManager.sceneCount; i++)
         {
@@ -45,7 +47,7 @@ public static class PausePlayTest
             }
         }
 
-        EditorSceneManager.OpenScene(PauseMenuBuilder.TestScenePath, OpenSceneMode.Single);
+        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
         SessionState.SetBool(Key, true);
         SessionState.SetBool(Key + ".bg", PlayerSettings.runInBackground);
         PlayerSettings.runInBackground = true;
@@ -87,7 +89,7 @@ public static class PausePlayTest
         log.Clear();
         Application.logMessageReceived += OnLog;
         EditorApplication.update += Tick;
-        log.AppendLine("play iniciado na cena Teste save");
+        log.AppendLine("play iniciado na cena " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 
     private static void OnLog(string message, string stack, LogType type)
