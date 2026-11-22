@@ -57,6 +57,8 @@ public class Menu3DController : MonoBehaviour
 
     [Header("Cena do jogo")]
     [SerializeField] private string gameScene = "CenaPrincipal";
+    [Tooltip("Cena onde começa um jogo novo (JOGAR).")]
+    [SerializeField] private string newGameScene = "Prologo";
     [SerializeField] private float fadeOutTime = 1.4f;
 
     [Header("Som")]
@@ -74,6 +76,7 @@ public class Menu3DController : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        PlayerStats.LimparTransporte(); // no menu, nada vem da partida anterior
 
         // Com painel de LED, o quadro físico fica sempre visível; só os LEDs ligam.
         SetGroup(mainBoard, mainPower != null ? 1f : 0f, false);
@@ -198,8 +201,15 @@ public class Menu3DController : MonoBehaviour
             return;
 
         PlayClip(confirmClip);
+
+        // Jogo novo: zera progresso, inventário e slot atual
         SaveGameLoader.selectedSlot = -1;
-        StartCoroutine(Leave(() => LoadingScreen.Load(gameScene)));
+        GameSaveController.CurrentSlot = -1;
+        GameFlags.Clear();
+        PlayerInventory.Instance?.LimparInventario();
+
+        string cena = Application.CanStreamedLevelBeLoaded(newGameScene) ? newGameScene : gameScene;
+        StartCoroutine(Leave(() => LoadingScreen.Load(cena)));
     }
 
     public void OpenLoad()
@@ -254,7 +264,9 @@ public class Menu3DController : MonoBehaviour
 
         PlayClip(confirmClip);
         SaveGameLoader.selectedSlot = slot;
-        StartCoroutine(Leave(() => LoadingScreen.Load(gameScene)));
+        string cenaSave = SaveSnapshot.CenaDoSave(slot, gameScene);
+        if (!Application.CanStreamedLevelBeLoaded(cenaSave)) cenaSave = gameScene;
+        StartCoroutine(Leave(() => LoadingScreen.Load(cenaSave)));
     }
 
     public void Quit()

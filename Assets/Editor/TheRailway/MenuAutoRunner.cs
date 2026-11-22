@@ -41,7 +41,7 @@ public static class MenuAutoRunner
 
         DateTime newest = DateTime.MinValue;
 
-        foreach (var dir in new[] { "Assets/Editor/TheRailway", "Assets/Scripts/Menu", "Assets/Scripts/Pause", "Assets/Scripts/Loading" })
+        foreach (var dir in new[] { "Assets/Editor/TheRailway", "Assets/Scripts/Menu", "Assets/Scripts/Pause", "Assets/Scripts/Loading", "Assets/Scripts/Sobrevivencia", "Assets/Scripts/Prologo", "Assets/Scripts/SystemSave Menu" })
         {
             if (!Directory.Exists(dir)) continue;
             foreach (var file in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
@@ -94,6 +94,17 @@ public static class MenuAutoRunner
             return;
         }
 
+        if (command == "murmurio")
+        {
+            File.Delete(CommandFile);
+            var mlog = new StringBuilder();
+            mlog.AppendLine($"comando: murmurio  ({DateTime.Now:HH:mm:ss})");
+            try { GravarMurmurio(mlog); mlog.AppendLine("ok"); }
+            catch (Exception e) { mlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(mlog);
+            return;
+        }
+
         if (command == "movepause")
         {
             File.Delete(CommandFile);
@@ -119,6 +130,102 @@ public static class MenuAutoRunner
         {
             File.Delete(CommandFile);
             PausePrefabTest.Start();
+            return;
+        }
+
+        if (command == "jogador" || command.StartsWith("jogadorinstall"))
+        {
+            File.Delete(CommandFile);
+            var jlog = new StringBuilder();
+            jlog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            if (command != "jogador") // criar o prefab não mexe em cenas; instalar sim
+                for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                    if (EditorSceneManager.GetSceneAt(i).isDirty) { jlog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                try
+                {
+                    if (command == "jogador") { SistemaJogadorBuilder.Build(jlog); SistemaJogadorBuilder.Capture(jlog); }
+                    else
+                    {
+                        SistemaJogadorBuilder.InstallInScene(PauseMenuBuilder.MainScenePath, jlog);
+                        SistemaJogadorBuilder.InstallInScene(PauseMenuBuilder.TestScenePath, jlog);
+                    }
+                    jlog.AppendLine("ok");
+                }
+                catch (Exception e) { jlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            }
+            WriteStatus(jlog);
+            return;
+        }
+
+        if (command == "arte")
+        {
+            File.Delete(CommandFile);
+            var alog = new StringBuilder();
+            try { ArteInspetor.Gerar(alog); alog.AppendLine("ok"); }
+            catch (Exception e) { alog.AppendLine("ERRO: " + e); }
+            WriteStatus(alog);
+            return;
+        }
+
+        if (command == "prologotest")
+        {
+            File.Delete(CommandFile);
+            PrologoPlayTest.Start();
+            return;
+        }
+
+        if (command == "carvaomonte")
+        {
+            File.Delete(CommandFile);
+            var clog = new StringBuilder();
+            clog.AppendLine($"comando: carvaomonte  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { clog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try { PrologoBuilder.ConverterMonteDeCarvao(clog); clog.AppendLine("ok"); }
+                catch (Exception e) { clog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != PrologoBuilder.ScenePath && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(clog);
+            return;
+        }
+
+        if (command == "prologo" || command == "prologocaptura")
+        {
+            File.Delete(CommandFile);
+            var plog = new StringBuilder();
+            plog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { plog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try
+                {
+                    if (command == "prologo") PrologoBuilder.Build(plog);
+                    else EditorSceneManager.OpenScene(PrologoBuilder.ScenePath, OpenSceneMode.Single);
+                    PrologoBuilder.Capture(plog);
+                    plog.AppendLine("ok");
+                }
+                catch (Exception e) { plog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != PrologoBuilder.ScenePath && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(plog);
             return;
         }
 
@@ -341,6 +448,80 @@ public static class MenuAutoRunner
             path = t.name + "/" + path;
         }
         return path;
+    }
+
+    // Grava em WAV algumas frases murmuradas, com o mesmo ritmo das legendas, para ouvir fora do jogo.
+    private static void GravarMurmurio(StringBuilder log)
+    {
+        var frases = new[]
+        {
+            (VozMurmurio.Tipo.Candido, "Onde... onde eu tô?"),
+            (VozMurmurio.Tipo.Candido, "Nossa... que dor de cabeça."),
+            (VozMurmurio.Tipo.Candido, "Que sede... minha boca tá seca. Preciso achar água."),
+            (VozMurmurio.Tipo.Radio, "...aqui é a estação de Vila Serena, alguém na escuta?"),
+        };
+        const int sr = 44100;
+        const float letra = 1f / 30f, volume = 0.32f;
+        var mix = new System.Collections.Generic.List<float>();
+        foreach (var (tipo, frase) in frases)
+        {
+            int baseIdx = mix.Count;
+            float t = 0f, ultima = -1f;
+            float total = 0f;
+            for (int i = 0; i < frase.Length; i++) total += letra * PausaDe(frase, i);
+            int tamanho = Mathf.CeilToInt((total + 1f) * sr);
+            mix.AddRange(new float[tamanho]);
+            for (int i = 0; i < frase.Length; i++)
+            {
+                bool vogal = Vogal(frase[i]);
+                if (vogal && (i == 0 || !Vogal(frase[i - 1])) && t - ultima > 0.085f)
+                {
+                    var clip = VozMurmurio.Silaba(tipo);
+                    var d = new float[clip.samples];
+                    clip.GetData(d, 0);
+                    float pitch = UnityEngine.Random.Range(0.93f, 1.08f), vol = volume * UnityEngine.Random.Range(0.75f, 1f);
+                    int ini = baseIdx + Mathf.RoundToInt(t * sr);
+                    for (int k = 0; ini + k < mix.Count; k++)
+                    {
+                        float src = k * pitch;
+                        int j = (int)src;
+                        if (j + 1 >= d.Length) break;
+                        mix[ini + k] += Mathf.Lerp(d[j], d[j + 1], src - j) * vol;
+                    }
+                    ultima = t;
+                }
+                t += letra * PausaDe(frase, i);
+            }
+        }
+
+        float pico = 0f;
+        foreach (var v in mix) pico = Mathf.Max(pico, Mathf.Abs(v));
+        string caminho = Path.Combine(Folder, "murmurio.wav");
+        using (var w = new BinaryWriter(File.Create(caminho)))
+        {
+            int bytes = mix.Count * 2;
+            w.Write(Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + bytes); w.Write(Encoding.ASCII.GetBytes("WAVE"));
+            w.Write(Encoding.ASCII.GetBytes("fmt ")); w.Write(16); w.Write((short)1); w.Write((short)1);
+            w.Write(sr); w.Write(sr * 2); w.Write((short)2); w.Write((short)16);
+            w.Write(Encoding.ASCII.GetBytes("data")); w.Write(bytes);
+            foreach (var v in mix) w.Write((short)Mathf.Clamp(Mathf.RoundToInt(v * 32767f), -32768, 32767));
+        }
+        log.AppendLine($"gravado {caminho}: {mix.Count / (float)sr:0.0}s, pico {pico:0.00}");
+    }
+
+    private static bool Vogal(char c) => "aeiouáéíóúâêôãõàAEIOUÁÉÍÓÚÂÊÔÃÕÀ".IndexOf(c) >= 0;
+
+    private static float PausaDe(string s, int i)
+    {
+        bool fim = i + 1 >= s.Length || s[i + 1] == ' ';
+        switch (s[i])
+        {
+            case ',': case ';': return 6f;
+            case '.': return fim ? 10f : 4f;
+            case '!': case '?': return 10f;
+            case ' ': return 1.4f;
+            default: return 1f;
+        }
     }
 
     private static void WriteStatus(StringBuilder log)
