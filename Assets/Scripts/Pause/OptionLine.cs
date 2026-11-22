@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 /// </summary>
 public class OptionLine : MonoBehaviour, IMoveHandler, IPointerClickHandler, ISubmitHandler
 {
-    public enum Kind { Volume, Sensitivity, Fullscreen }
+    public enum Kind { Volume, Sensitivity, Fullscreen, FieldOfView }
 
     [SerializeField] private Kind kind;
     [SerializeField] private string title = "VOLUME";
@@ -34,6 +34,7 @@ public class OptionLine : MonoBehaviour, IMoveHandler, IPointerClickHandler, ISu
         {
             case Kind.Volume: return $"{Mathf.RoundToInt(GameSettings.Volume * 100f)}%".PadLeft(4);
             case Kind.Sensitivity: return $"{GameSettings.Sensitivity:0.0}X".PadLeft(4);
+            case Kind.FieldOfView: return $"{Mathf.RoundToInt(GameSettings.FieldOfView)}".PadLeft(4);
             default: return GameSettings.Fullscreen ? " SIM" : " NÃO";
         }
     }
@@ -47,6 +48,9 @@ public class OptionLine : MonoBehaviour, IMoveHandler, IPointerClickHandler, ISu
                 break;
             case Kind.Sensitivity:
                 GameSettings.Sensitivity = Mathf.Round((GameSettings.Sensitivity + 0.1f * direction) * 10f) / 10f;
+                break;
+            case Kind.FieldOfView:
+                GameSettings.FieldOfView = Mathf.Round(GameSettings.FieldOfView / 5f) * 5f + 5f * direction;
                 break;
             default:
                 GameSettings.Fullscreen = !GameSettings.Fullscreen;

@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using StarterAssets;
+using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Configurações do jogador (volume, sensibilidade do mouse, tela cheia),
+/// Configurações do jogador (volume, sensibilidade do mouse, tela cheia, campo de visão),
 /// guardadas no PlayerPrefs e aplicadas ao abrir qualquer cena com menu.
 /// </summary>
 public static class GameSettings
@@ -11,6 +13,7 @@ public static class GameSettings
     private const string VolumeKey = "TheRailway.Volume";
     private const string SensitivityKey = "TheRailway.Sensitivity";
     private const string FullscreenKey = "TheRailway.Fullscreen";
+    private const string FovKey = "TheRailway.FieldOfView";
 
     // Velocidade original de cada jogador, para a sensibilidade ser um multiplicador.
     private static readonly Dictionary<FirstPersonController, float> baseSpeed = new Dictionary<FirstPersonController, float>();
@@ -35,11 +38,52 @@ public static class GameSettings
         set { PlayerPrefs.SetInt(FullscreenKey, value ? 1 : 0); PlayerPrefs.Save(); ApplyFullscreen(); }
     }
 
+    /// <summary>Campo de visão vertical da câmera do jogador, em graus (padrão 60; o antigo era 40).</summary>
+    public static float FieldOfView
+    {
+        get => Mathf.Clamp(PlayerPrefs.GetFloat(FovKey, FovPadrao), FovMin, FovMax);
+        set { PlayerPrefs.SetFloat(FovKey, Mathf.Clamp(value, FovMin, FovMax)); PlayerPrefs.Save(); ApplyFieldOfView(); }
+    }
+
+    public const float FovPadrao = 60f, FovMin = 45f, FovMax = 90f;
+
     public static void ApplyAll()
     {
         ApplyVolume();
         ApplySensitivity();
         ApplyFullscreen();
+        ApplyFieldOfView();
+    }
+
+    // Aplica o FOV em toda cena carregada, mesmo nas que não têm menu de pausa.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void AoIniciar()
+    {
+        ApplyFieldOfView();
+        SceneManager.sceneLoaded -= AoCarregarCena;
+        SceneManager.sceneLoaded += AoCarregarCena;
+    }
+
+    private static void AoCarregarCena(Scene cena, LoadSceneMode modo) => ApplyFieldOfView();
+
+    /// <summary>
+    /// Só a câmera em primeira pessoa (a que segue o PlayerCameraRoot); a câmera de fora do trem fica como está.
+    /// </summary>
+    public static void ApplyFieldOfView()
+    {
+        float fov = FieldOfView;
+        foreach (var cam in Object.FindObjectsByType<CinemachineCamera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (EhCameraDoJogador(cam.gameObject, cam.Follow)) cam.Lens.FieldOfView = fov;
+#pragma warning disable CS0618 // as cenas ainda usam a CinemachineVirtualCamera antiga
+        foreach (var cam in Object.FindObjectsByType<CinemachineVirtualCamera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (EhCameraDoJogador(cam.gameObject, cam.Follow)) cam.m_Lens.FieldOfView = fov;
+#pragma warning restore CS0618
+    }
+
+    private static bool EhCameraDoJogador(GameObject go, Transform follow)
+    {
+        if (go.name.Contains("PlayerFollowCamera")) return true;
+        return follow != null && follow.name.Contains("PlayerCameraRoot");
     }
 
     public static void ApplyVolume()

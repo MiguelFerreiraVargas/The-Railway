@@ -215,10 +215,11 @@ public static class PauseMenuBuilder
         var options = Group(leds, "Opcoes");
         Text(options, "Titulo", "OPÇÕES", ledFont, 78, Led, new Vector2(-W / 2 + 60, H / 2 - 70), new Vector2(W - 120, 100), TextAlignmentOptions.Left);
         Bar(options, new Vector2(0, H / 2 - 130), new Vector2(W - 100, 5));
-        var oVolume = OptionRow(options, "Volume", OptionLine.Kind.Volume, "VOLUME", ledFont, H / 2 - 230);
-        var oSens = OptionRow(options, "Sensibilidade", OptionLine.Kind.Sensitivity, "SENSIBILIDADE", ledFont, H / 2 - 330);
-        var oFull = OptionRow(options, "Tela Cheia", OptionLine.Kind.Fullscreen, "TELA CHEIA", ledFont, H / 2 - 430);
-        var bOptionsBack = Line(options, "Voltar", "<   VOLTAR", ledFont, H / 2 - 545);
+        var oVolume = OptionRow(options, "Volume", OptionLine.Kind.Volume, "VOLUME", ledFont, H / 2 - 220);
+        var oSens = OptionRow(options, "Sensibilidade", OptionLine.Kind.Sensitivity, "SENSIBILIDADE", ledFont, H / 2 - 308);
+        var oFov = OptionRow(options, "Campo de Visao", OptionLine.Kind.FieldOfView, "CAMPO DE VISÃO", ledFont, H / 2 - 396);
+        var oFull = OptionRow(options, "Tela Cheia", OptionLine.Kind.Fullscreen, "TELA CHEIA", ledFont, H / 2 - 484);
+        var bOptionsBack = Line(options, "Voltar", "<   VOLTAR", ledFont, H / 2 - 580);
 
         // Sair para...
         var quit = Group(leds, "Sair");
@@ -259,7 +260,7 @@ public static class PauseMenuBuilder
 
         Chain(bContinue, bSave, bOptions, bQuit);
         Chain(slots[0], slots[1], slots[2], bBack);
-        Chain(oVolume, oSens, oFull, bOptionsBack);
+        Chain(oVolume, oSens, oFov, oFull, bOptionsBack);
         Chain(bDesktop, bToMenu, bQuitBack);
 
         var so = new SerializedObject(pause);
@@ -452,6 +453,7 @@ public static class PauseMenuBuilder
         oso.FindProperty("kind").enumValueIndex = (int)kind;
         oso.FindProperty("title").stringValue = title;
         oso.FindProperty("label").objectReferenceValue = label;
+        oso.FindProperty("titleWidth").intValue = 15; // "CAMPO DE VISÃO" tem 14 letras
         oso.ApplyModifiedPropertiesWithoutUndo();
         opt.Refresh();
 
