@@ -133,6 +133,7 @@ namespace StarterAssets
         private void Update()
         {
             GroundedCheck();
+            Gravidade();
             Move();
             AtualizarStamina();
             GerenciarSomDePassos();
@@ -278,6 +279,26 @@ namespace StarterAssets
 
                 transform.Rotate(Vector3.up * _rotationVelocity);
             }
+        }
+
+        // Gravidade: sem isso o jogador não cai de beiradas e fica "flutuando".
+        private void Gravidade()
+        {
+            if (Grounded)
+            {
+                _fallTimeoutDelta = FallTimeout;
+
+                // encostado no chão: uma leve força para baixo mantém ele colado
+                if (_verticalVelocity < 0.0f)
+                    _verticalVelocity = -2f;
+            }
+            else if (_fallTimeoutDelta >= 0.0f)
+            {
+                _fallTimeoutDelta -= Time.deltaTime;
+            }
+
+            if (_verticalVelocity > -_terminalVelocity)
+                _verticalVelocity += Gravity * Time.deltaTime;
         }
 
         private void Move()
