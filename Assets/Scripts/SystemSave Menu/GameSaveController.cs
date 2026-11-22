@@ -108,6 +108,9 @@ public class GameSaveController : MonoBehaviour
 
         data.level = currentLevel;
 
+        // Cena, necessidades, progresso e inventario
+        SaveSnapshot.Capturar(data);
+
         SaveManager.Save(slot, data);
         CurrentSlot = slot;
 
@@ -143,6 +146,9 @@ public class GameSaveController : MonoBehaviour
 
         // Recupera o level
         currentLevel = data.level;
+
+        // Necessidades, progresso e inventario
+        SaveSnapshot.Aplicar(data);
         CurrentSlot = slot;
 
         // Atualiza a data para o momento em que o jogador entrou

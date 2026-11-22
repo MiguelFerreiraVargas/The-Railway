@@ -104,7 +104,7 @@ public class PauseMenu : MonoBehaviour
     private void Update()
     {
         // Durante a tela de carregamento o Esc não pausa (o mundo já está congelado).
-        if (LoadingScreen.IsLoading)
+        if (LoadingScreen.IsLoading || Leitura.Aberta || TelaDeMorte.Ativa)
             return;
 
         if (PausePressed())
@@ -287,6 +287,7 @@ public class PauseMenu : MonoBehaviour
             posZ = player.position.z,
             level = controller != null ? controller.currentLevel : 1,
         };
+        SaveSnapshot.Capturar(data);
 
         SaveManager.Save(slot, data);
         GameSaveController.CurrentSlot = slot;
