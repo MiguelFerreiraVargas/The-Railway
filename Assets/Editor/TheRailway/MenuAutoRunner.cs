@@ -6,6 +6,7 @@ using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Executa a configuração do menu sem precisar clicar em nada: quando o arquivo
@@ -174,6 +175,302 @@ public static class MenuAutoRunner
         {
             File.Delete(CommandFile);
             PrologoPlayTest.Start();
+            return;
+        }
+
+        if (command == "isotest")
+        {
+            File.Delete(CommandFile);
+            IsometricoPlayTest.Start();
+            return;
+        }
+
+        if (command == "dx11")
+        {
+            File.Delete(CommandFile);
+            var glog = new StringBuilder();
+            glog.AppendLine($"comando: dx11  ({DateTime.Now:HH:mm:ss})");
+            try
+            {
+                foreach (var alvo in new[] { BuildTarget.StandaloneWindows64, BuildTarget.StandaloneWindows })
+                {
+                    PlayerSettings.SetUseDefaultGraphicsAPIs(alvo, false);
+                    PlayerSettings.SetGraphicsAPIs(alvo, new[] { UnityEngine.Rendering.GraphicsDeviceType.Direct3D11 });
+                    glog.AppendLine($"{alvo}: {string.Join(", ", PlayerSettings.GetGraphicsAPIs(alvo))}");
+                }
+                AssetDatabase.SaveAssets();
+                glog.AppendLine("editor agora: " + SystemInfo.graphicsDeviceType + " (vale depois de reiniciar o Unity)");
+                glog.AppendLine("ok");
+            }
+            catch (Exception e) { glog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(glog);
+            return;
+        }
+
+        if (command == "mundo")
+        {
+            File.Delete(CommandFile);
+            var wlog = new StringBuilder();
+            wlog.AppendLine($"comando: mundo  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { wlog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try { MundoBuilder.Preparar(wlog); wlog.AppendLine("ok"); }
+                catch (Exception e) { wlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != IsometricoBuilder.ScenePath && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(wlog);
+            return;
+        }
+
+        if (command == "estruturas" || command == "estruturasfoto")
+        {
+            File.Delete(CommandFile);
+            var elog = new StringBuilder();
+            elog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { elog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try
+                {
+                    if (command == "estruturas") EstruturasBuilder.Construir(elog);
+                    EstruturasBuilder.Capturar(elog);
+                    elog.AppendLine("ok");
+                }
+                catch (Exception e) { elog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != IsometricoBuilder.ScenePath && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(elog);
+            return;
+        }
+
+        if (command == "isometrica")
+        {
+            File.Delete(CommandFile);
+            var ilog = new StringBuilder();
+            ilog.AppendLine($"comando: isometrica  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { ilog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try { IsometricoBuilder.Instalar(ilog); ilog.AppendLine("ok"); }
+                catch (Exception e) { ilog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != IsometricoBuilder.ScenePath && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(ilog);
+            return;
+        }
+
+        if (command.StartsWith("previacasa"))
+        {
+            File.Delete(CommandFile);
+            var mlog = new StringBuilder();
+            mlog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            string caminhoCasa = command.Contains(":") ? command.Substring(command.IndexOf(':') + 1).Trim() : "Assets/Models/CASAS/old-russian-house (1)/source/Dom.fbx";
+            try { PreviaCasa(caminhoCasa, mlog); mlog.AppendLine("ok"); }
+            catch (Exception e) { mlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(mlog);
+            return;
+        }
+
+        if (command == "descartar")
+        {
+            // recarrega do disco a cena aberta (joga fora mudanças que um builder deixou pela metade)
+            File.Delete(CommandFile);
+            var xlog = new StringBuilder();
+            string atual = EditorSceneManager.GetActiveScene().path;
+            xlog.AppendLine($"comando: descartar ({atual}, suja: {EditorSceneManager.GetActiveScene().isDirty})");
+            if (File.Exists(atual)) EditorSceneManager.OpenScene(atual, OpenSceneMode.Single);
+            xlog.AppendLine("ok");
+            WriteStatus(xlog);
+            return;
+        }
+
+        if (command == "sistemas")
+        {
+            File.Delete(CommandFile);
+            var slog = new StringBuilder();
+            slog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { slog.AppendLine("PARADO: há cena com mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try { SistemasBuilder.Construir(slog); slog.AppendLine("ok"); }
+                catch (Exception e) { slog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != EditorSceneManager.GetActiveScene().path && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(slog);
+            return;
+        }
+
+        if (command == "mapa")
+        {
+            File.Delete(CommandFile);
+            var mlog = new StringBuilder();
+            mlog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { mlog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try { MapaBuilder.Construir(mlog); mlog.AppendLine("ok"); }
+                catch (Exception e) { mlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != EditorSceneManager.GetActiveScene().path && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(mlog);
+            return;
+        }
+
+        if (command == "bracosaplicar")
+        {
+            File.Delete(CommandFile);
+            var alog = new StringBuilder();
+            alog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty) { alog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try { BracosPrevia.Aplicar(alog); alog.AppendLine("ok"); }
+                catch (Exception e) { alog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != EditorSceneManager.GetActiveScene().path && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(alog);
+            return;
+        }
+
+        if (command.StartsWith("bracos"))
+        {
+            File.Delete(CommandFile);
+            var blog = new StringBuilder();
+            blog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            try
+            {
+                foreach (var a in (command.Contains(":") ? command.Substring(command.IndexOf(':') + 1) : "").Split('|'))
+                    BracosPrevia.Rodar(a.Trim(), blog);
+                blog.AppendLine("ok");
+            }
+            catch (Exception e) { blog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(blog);
+            return;
+        }
+
+        if (command.StartsWith("previamao"))
+        {
+            File.Delete(CommandFile);
+            var mlog = new StringBuilder();
+            mlog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            try { PreviaNaCamera("Assets/Prefabs/ArmPrincipal.prefab", mlog); mlog.AppendLine("ok"); }
+            catch (Exception e) { mlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(mlog);
+            return;
+        }
+
+        if (command == "pecascasa" || command.StartsWith("estrutura:"))
+        {
+            File.Delete(CommandFile);
+            var dlog = new StringBuilder();
+            dlog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            try
+            {
+                if (command == "pecascasa") DiagEstruturas.PecasFbx("Assets/Models/CASAS/old-stash-house/source/House.fbx", dlog);
+                else if (command == "estrutura:animais") DiagEstruturas.Animais(dlog); else if (command == "estrutura:fotos") DiagEstruturas.FotosFerrovia(dlog);
+                else DiagEstruturas.Estrutura(command.Substring(10), dlog);
+                dlog.AppendLine("ok");
+            }
+            catch (Exception e) { dlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(dlog);
+            return;
+        }
+
+        if (command == "modelo")
+        {
+            File.Delete(CommandFile);
+            var mlog = new StringBuilder();
+            mlog.AppendLine($"comando: modelo  ({DateTime.Now:HH:mm:ss})");
+            try { PreviaModelo("Assets/Packages/male_casual/male_casual.fbx", mlog); mlog.AppendLine("ok"); }
+            catch (Exception e) { mlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(mlog);
+            return;
+        }
+
+        if (command.StartsWith("dumpcena"))
+        {
+            File.Delete(CommandFile);
+            var dlog = new StringBuilder();
+            dlog.AppendLine($"comando: {command}  ({DateTime.Now:HH:mm:ss})");
+            string cenaPath = command.Contains(":") ? command.Substring(command.IndexOf(':') + 1).Trim() : "Assets/Scenes/CenaPrincipal.unity";
+            bool sujo = false;
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                if (EditorSceneManager.GetSceneAt(i).isDirty && EditorSceneManager.GetSceneAt(i).path != cenaPath) { dlog.AppendLine($"PARADO: a cena \"{EditorSceneManager.GetSceneAt(i).name}\" tem mudanças não salvas."); sujo = true; }
+            if (!sujo)
+            {
+                string voltar = EditorSceneManager.GetActiveScene().path;
+                try
+                {
+                    var sc = EditorSceneManager.GetActiveScene().path == cenaPath ? EditorSceneManager.GetActiveScene() : EditorSceneManager.OpenScene(cenaPath, OpenSceneMode.Single);
+                    void Dump(Transform t, int d, int max)
+                    {
+                        var comps = string.Join(", ", t.GetComponents<Component>().Where(c => c != null && !(c is Transform)).Select(c => c.GetType().Name));
+                        var src = PrefabUtility.GetCorrespondingObjectFromSource(t.gameObject);
+                        string pf = src != null && PrefabUtility.IsAnyPrefabInstanceRoot(t.gameObject) ? $" [prefab {AssetDatabase.GetAssetPath(src)}]" : "";
+                        var rs = t.GetComponentsInChildren<Renderer>();
+                        string b = "";
+                        if (rs.Length > 0) { var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); b = $" bounds c{bb.center:F1} s{bb.size:F1}"; }
+                        dlog.AppendLine($"{new string(' ', d * 2)}{t.name}{(t.gameObject.activeInHierarchy ? "" : " (inativo)")} pos{t.position:F1} rot{t.eulerAngles:F0} [{comps}]{pf}{b} filhos={t.childCount}");
+                        if (d < max) foreach (Transform c in t) Dump(c, d + 1, max);
+                    }
+                    foreach (var r in sc.GetRootGameObjects())
+                    {
+                        int max = r.name.Contains("Player") || r.name.Contains("Camera") || r.name == "Dom" || r.name == "steam-train" ? 4 : 1;
+                        Dump(r.transform, 0, max);
+                    }
+                    dlog.AppendLine("ok");
+                }
+                catch (Exception e) { dlog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(voltar) && voltar != cenaPath && File.Exists(voltar))
+                        EditorSceneManager.OpenScene(voltar, OpenSceneMode.Single);
+                }
+            }
+            WriteStatus(dlog);
             return;
         }
 
@@ -522,6 +819,151 @@ public static class MenuAutoRunner
             case ' ': return 1.4f;
             default: return 1f;
         }
+    }
+
+    // Casa vista de cima sem telhado/teto e de fora, com as partes listadas.
+    private static void PreviaCasa(string caminho, StringBuilder log)
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(caminho);
+        var ps = EditorSceneManager.NewPreviewScene();
+        try
+        {
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, ps);
+            var rs = go.GetComponentsInChildren<Renderer>();
+            var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            log.AppendLine($"casa: centro {b.center:F2} tamanho {b.size:F2}");
+            foreach (var r in rs)
+            {
+                var mf = r.GetComponent<MeshFilter>();
+                log.AppendLine($"  {r.name}: c{r.bounds.center:F2} s{r.bounds.size:F2} mats {string.Join("/", r.sharedMaterials.Select(m => m ? m.name : "null"))} vertices {(mf && mf.sharedMesh ? mf.sharedMesh.vertexCount : 0)}");
+            }
+            var luz = new GameObject("luz").AddComponent<Light>();
+            luz.type = LightType.Directional; luz.transform.rotation = Quaternion.Euler(60f, -30f, 0f); luz.intensity = 1.2f;
+            SceneManager.MoveGameObjectToScene(luz.gameObject, ps);
+            var camGo = new GameObject("cam");
+            SceneManager.MoveGameObjectToScene(camGo, ps);
+            var cam = camGo.AddComponent<Camera>();
+            cam.scene = ps; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.25f, 0.3f, 0.25f);
+            var rt = new RenderTexture(1000, 1000, 24);
+            cam.targetTexture = rt;
+            void Foto(string nome)
+            {
+                cam.Render();
+                var prev = RenderTexture.active; RenderTexture.active = rt;
+                var tex = new Texture2D(1000, 1000, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0, 0, 1000, 1000), 0, 0); tex.Apply();
+                RenderTexture.active = prev;
+                File.WriteAllBytes(Path.Combine(Folder, nome), tex.EncodeToPNG());
+                UnityEngine.Object.DestroyImmediate(tex);
+                log.AppendLine("prévia: " + nome);
+            }
+            cam.orthographic = false; cam.fieldOfView = 40f;
+            string pre = Path.GetFileNameWithoutExtension(caminho).Replace(" ", "_") + "_";
+            foreach (var (nome, dir) in new[] { (pre + "frente.png", new Vector3(0f, 0.5f, 1f)), (pre + "tras.png", new Vector3(0f, 0.5f, -1f)), (pre + "esq.png", new Vector3(-1f, 0.5f, 0f)), (pre + "dir.png", new Vector3(1f, 0.5f, 0f)) })
+            {
+                camGo.transform.position = b.center + dir.normalized * b.size.magnitude * 1.5f;
+                camGo.transform.LookAt(b.center);
+                Foto(nome);
+            }
+            // de cima sem telhado e teto
+            foreach (var r in rs) if (r.bounds.center.y > b.min.y + 2.6f) r.enabled = false;
+            cam.orthographic = true; cam.orthographicSize = Mathf.Max(b.size.x, b.size.z) * 0.55f;
+            camGo.transform.position = b.center + Vector3.up * 30f;
+            camGo.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            Foto(pre + "planta.png");
+            log.AppendLine("planta: x para a direita, z para cima");
+            cam.targetTexture = null; UnityEngine.Object.DestroyImmediate(rt);
+        }
+        finally { EditorSceneManager.ClosePreviewScene(ps); }
+    }
+
+    // Mostra um prefab preso à câmera (como em primeira pessoa), com o transform local dele.
+    private static void PreviaNaCamera(string caminho, StringBuilder log)
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(caminho);
+        var ps = EditorSceneManager.NewPreviewScene();
+        try
+        {
+            var camGo = new GameObject("cam");
+            SceneManager.MoveGameObjectToScene(camGo, ps);
+            var cam = camGo.AddComponent<Camera>();
+            cam.scene = ps; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.3f, 0.33f, 0.36f);
+            cam.fieldOfView = 60f; cam.nearClipPlane = 0.05f;
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, ps);
+            var lp = go.transform.localPosition; var lr = go.transform.localRotation; var ls = go.transform.localScale;
+            go.transform.SetParent(camGo.transform, false);
+            go.transform.localPosition = lp; go.transform.localRotation = lr; go.transform.localScale = ls;
+            log.AppendLine($"local pos {lp:F2} rot {lr.eulerAngles:F0} escala {ls:F2}");
+            var rs = go.GetComponentsInChildren<Renderer>();
+            foreach (var r in rs) log.AppendLine($"  renderer {r.name} ({r.GetType().Name}) bounds c{r.bounds.center:F2} s{r.bounds.size:F2} mat {(r.sharedMaterial ? r.sharedMaterial.name : "null")}");
+            var an = go.GetComponentInChildren<Animator>();
+            if (an != null && an.runtimeAnimatorController != null)
+            {
+                var clip = an.runtimeAnimatorController.animationClips.FirstOrDefault(c => c.name.Contains("relax"));
+                if (clip != null) { clip.SampleAnimation(an.gameObject, 0.1f); log.AppendLine("pose: " + clip.name); }
+                log.AppendLine("clipes: " + string.Join(", ", an.runtimeAnimatorController.animationClips.Select(c => c.name).Distinct()));
+            }
+            var luz = new GameObject("luz").AddComponent<Light>();
+            luz.type = LightType.Directional; luz.transform.rotation = Quaternion.Euler(40f, -30f, 0f); luz.intensity = 1.3f;
+            SceneManager.MoveGameObjectToScene(luz.gameObject, ps);
+            var rt = new RenderTexture(1280, 720, 24);
+            cam.targetTexture = rt;
+            cam.Render();
+            var prev = RenderTexture.active; RenderTexture.active = rt;
+            var tex = new Texture2D(1280, 720, TextureFormat.RGB24, false);
+            tex.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0); tex.Apply();
+            RenderTexture.active = prev;
+            File.WriteAllBytes(Path.Combine(Folder, "previa_mao.png"), tex.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(tex);
+            cam.targetTexture = null; UnityEngine.Object.DestroyImmediate(rt);
+            log.AppendLine("prévia: previa_mao.png");
+        }
+        finally { EditorSceneManager.ClosePreviewScene(ps); }
+    }
+
+    // Renderiza um modelo numa cena de prévia (não mexe na cena aberta) e lista os ossos.
+    private static void PreviaModelo(string caminho, StringBuilder log)
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(caminho);
+        var ps = EditorSceneManager.NewPreviewScene();
+        try
+        {
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, ps);
+            var rs = go.GetComponentsInChildren<Renderer>();
+            var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            log.AppendLine($"bounds centro {b.center:F2} tamanho {b.size:F2}");
+            foreach (var t in go.GetComponentsInChildren<Transform>())
+                log.AppendLine($"  {t.name}: pos {t.position:F2} rot {t.eulerAngles:F0} escala {t.lossyScale:F2} cima {t.up:F2} frente {t.forward:F2} direita {t.right:F2}");
+            foreach (var r in rs) log.AppendLine($"  renderer {r.name} {r.GetType().Name} mat {(r.sharedMaterial != null ? r.sharedMaterial.name + "/" + r.sharedMaterial.shader.name : "null")}");
+
+            var luz = new GameObject("luz").AddComponent<Light>();
+            luz.type = LightType.Directional; luz.transform.rotation = Quaternion.Euler(40f, 150f, 0f); luz.intensity = 1.5f;
+            SceneManager.MoveGameObjectToScene(luz.gameObject, ps);
+            var camGo = new GameObject("cam");
+            SceneManager.MoveGameObjectToScene(camGo, ps);
+            var cam = camGo.AddComponent<Camera>();
+            cam.scene = ps; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.35f, 0.38f, 0.42f);
+            cam.fieldOfView = 30f;
+            var rt = new RenderTexture(900, 900, 24);
+            cam.targetTexture = rt;
+            foreach (var (nome, dir) in new[] { ("frente", Vector3.forward), ("lado", Vector3.right), ("iso", new Vector3(-1f, 1.1f, -1f)) })
+            {
+                float dist = b.size.magnitude * 2.1f;
+                camGo.transform.position = b.center + dir.normalized * dist;
+                camGo.transform.LookAt(b.center);
+                cam.Render();
+                var prev = RenderTexture.active; RenderTexture.active = rt;
+                var tex = new Texture2D(900, 900, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0, 0, 900, 900), 0, 0); tex.Apply();
+                RenderTexture.active = prev;
+                File.WriteAllBytes(Path.Combine(Folder, $"modelo_{nome}.png"), tex.EncodeToPNG());
+                UnityEngine.Object.DestroyImmediate(tex);
+                log.AppendLine($"prévia: modelo_{nome}.png");
+            }
+            cam.targetTexture = null;
+            UnityEngine.Object.DestroyImmediate(rt);
+        }
+        finally { EditorSceneManager.ClosePreviewScene(ps); }
     }
 
     private static void WriteStatus(StringBuilder log)
