@@ -69,6 +69,8 @@ public class PauseMenu : MonoBehaviour
         SetGroup(optionsList, 0f, false);
         SetGroup(quitList, 0f, false);
         if (message != null) message.alpha = 0f;
+        // os sons do menu tocam mesmo com o resto do áudio pausado
+        if (uiAudio != null) uiAudio.ignoreListenerPause = true;
         EnsureEventSystem();
     }
 
@@ -83,6 +85,7 @@ public class PauseMenu : MonoBehaviour
         {
             // Nunca deixa o jogo congelado ao trocar de cena
             if (state != State.Closed) Time.timeScale = timeScaleBeforePause;
+            AudioListener.pause = false;
             Instance = null;
         }
     }
@@ -140,6 +143,8 @@ public class PauseMenu : MonoBehaviour
 
         timeScaleBeforePause = Time.timeScale > 0f ? Time.timeScale : 1f;
         Time.timeScale = 0f;
+        // Time.timeScale não para o áudio: trem, fogo, rádio... ficam mudos até voltar
+        AudioListener.pause = true;
         FreezePlayer(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -162,6 +167,7 @@ public class PauseMenu : MonoBehaviour
         Fade(0f, 0.12f, interactive: false);
 
         Time.timeScale = timeScaleBeforePause;
+        AudioListener.pause = false;
         FreezePlayer(false);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -237,6 +243,7 @@ public class PauseMenu : MonoBehaviour
 
         PlayClip(confirmClip);
         Time.timeScale = 1f;
+        AudioListener.pause = false;
         // Continua "pausado" até a cena trocar: senão a câmera do trem (e outros
         // scripts do jogo) travam o mouse de novo no último frame antes do menu.
         timeScaleBeforePause = 1f;
