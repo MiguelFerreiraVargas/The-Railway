@@ -44,6 +44,9 @@ public class TrainInteraction : MonoBehaviour
     private SplineContainer splineContainer;
     private CharacterController characterController;
 
+    // Carvão da locomotiva (opcional): sem ele o trem não sai e, se acabar, freia sozinho
+    private CombustivelTrem combustivel;
+
     private bool insideTrain = false;
 
     // Permite que outros scripts saibam se o jogador está no trem
@@ -59,6 +62,14 @@ public class TrainInteraction : MonoBehaviour
 
     // Controla transições de estado pra saber quando tocar o som de freio uma única vez
     private bool _estavaFreando = false;
+
+    /// <summary>Onde o trem está no trilho (0 = começo, 1 = fim da linha).</summary>
+    public float PosicaoNoTrilho => splinePosition;
+    public float VelocidadeAtual => currentSpeed;
+    /// <summary>Disparado uma vez quando o trem chega ao fim da linha.</summary>
+    public static event System.Action ChegouAoFim;
+    private bool avisouFim;
+    private EventoFerrovia eventoParado;
 
     void Awake()
     {
@@ -77,6 +88,8 @@ public class TrainInteraction : MonoBehaviour
             characterController =
                 player.GetComponent<CharacterController>();
         }
+
+        combustivel = GetComponentInChildren<CombustivelTrem>();
     }
 
     void Start()
@@ -209,9 +222,44 @@ public class TrainInteraction : MonoBehaviour
         if (currentSpeed > 0f &&
             splineLength > 0f)
         {
+            // gasta carvão pelo caminho; acabou, freia (o jogador continua sentado)
+            if (combustivel != null &&
+                !combustivel.Gastar(currentSpeed * Time.deltaTime) &&
+                !braking)
+            {
+                accelerating = false;
+                braking = true;
+                Narrador.Falar("Acabou o carvão... ela tá parando.");
+            }
+
             float movement =
                 (currentSpeed / splineLength) *
                 Time.deltaTime;
+
+            // obstáculo nos trilhos à frente: freia a tempo e não passa dele
+            float tBloq = EventoFerrovia.ProximoBloqueio(splinePosition, out var evento);
+            if (tBloq <= 1f)
+            {
+                float margem = 14f;
+                float metros = (tBloq - splinePosition) * splineLength - margem;
+                float desacel = maxSpeed / Mathf.Max(decelerationTime, 0.01f);
+                float paraFrear = currentSpeed * currentSpeed / (2f * desacel);
+                if (metros <= paraFrear + 1f && !braking)
+                {
+                    accelerating = false;
+                    braking = true;
+                    if (evento != eventoParado) Narrador.Falar("Tem alguma coisa nos trilhos! Freia, freia...");
+                }
+                float limite = tBloq - margem / splineLength;
+                if (splinePosition + movement >= limite)
+                {
+                    movement = Mathf.Max(0f, limite - splinePosition);
+                    currentSpeed = 0f;
+                    accelerating = false;
+                    braking = false;
+                    if (evento != null && evento != eventoParado) { eventoParado = evento; evento.TremParou(); }
+                }
+            }
 
             splinePosition += movement;
 
@@ -239,6 +287,7 @@ public class TrainInteraction : MonoBehaviour
                 Debug.Log(
                     "Trem chegou ao final do spline."
                 );
+                if (!avisouFim) { avisouFim = true; ChegouAoFim?.Invoke(); }
 
                 if (waitingToExit)
                 {
@@ -408,7 +457,12 @@ public class TrainInteraction : MonoBehaviour
         }
 
         insideTrain = true;
-        accelerating = true;
+        accelerating = combustivel == null || combustivel.TemCarvao;
+
+        if (!accelerating)
+        {
+            Narrador.Falar("Sem carvão no tênder ela não sai do lugar.");
+        }
         braking = false;
         waitingToExit = false;
 
