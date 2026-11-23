@@ -1,9 +1,17 @@
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
+/// <summary>
+/// C√¢mera de fora da locomotiva. Dentro do trem, V (ou segurar Ctrl) troca entre a cabine e uma
+/// c√¢mera atr√°s e acima do trem, que acompanha as curvas. O mouse gira em volta e a roda d√° zoom.
+/// Ao descer do trem volta sozinha para a c√¢mera do jogador.
+/// </summary>
 public class TrainCameraView : MonoBehaviour
 {
-    [Header("C‚meras")]
+    [Header("C√¢meras")]
     public Camera playerCamera;
     public Camera trainCamera;
 
@@ -14,9 +22,9 @@ public class TrainCameraView : MonoBehaviour
     [Header("Player")]
     public Transform player;
 
-    [Header("Dist‚ncia")]
-    public float startingDistance = 30f;
-    public float minDistance = 5f;
+    [Header("Dist√¢ncia")]
+    public float startingDistance = 22f;
+    public float minDistance = 8f;
     public float maxDistance = 60f;
 
     [Header("Zoom")]
@@ -25,344 +33,240 @@ public class TrainCameraView : MonoBehaviour
     [Header("Mouse")]
     public float mouseSensitivity = 0.15f;
 
-    [Header("¬ngulo")]
-    public float startingPitch = 20f;
+    [Header("√Çngulo")]
+    public float startingPitch = 18f;
     public float minPitch = -10f;
     public float maxPitch = 75f;
+    [Tooltip("√Çngulo inicial em volta do trem (0 = olhando por tr√°s, para a frente do trem).")]
+    public float startingYaw = 20f;
+    [Tooltip("Qu√£o r√°pido a c√¢mera acompanha a curva do trem (maior = mais grudada).")]
+    public float seguirCurva = 2.5f;
 
     [Header("Altura do alvo")]
     public float targetHeight = 2f;
 
-    [Header("Colis„o")]
+    [Header("Colis√£o")]
     public LayerMask collisionMask;
     public float collisionRadius = 0.5f;
     public float collisionPadding = 0.3f;
 
-    private bool viewingTrain = false;
+    [Header("Teclas")]
+    public Key teclaTrocar = Key.V;
 
-    private float yaw = 180f;
+    /// <summary>Se a c√¢mera de fora do trem est√° ativa.</summary>
+    public static bool Ativa { get; private set; }
+
+    private bool viewingTrain;
+    private bool alternada;      // ligada pelo V (o Ctrl s√≥ vale enquanto segura)
+    private float yaw;           // em volta do trem, relativo √† frente dele
     private float pitch;
-
     private float distance;
+    private float yawTrem;       // dire√ß√£o do trem suavizada
+    private float velYaw;
+    private Vector3 ultimaPosTrem, rumoTrem;
 
-    private Renderer[] playerRenderers;
+    private readonly Dictionary<Renderer, bool> estadoJogador = new Dictionary<Renderer, bool>();
+    private AudioListener ouvidoJogador, ouvidoTrem;
+    private CanvasGroup dica;
+    private TMP_Text textoDica;
 
     void Start()
     {
         distance = startingDistance;
         pitch = startingPitch;
+        yaw = startingYaw;
+        Ativa = false;
 
-        if (playerCamera != null)
-            playerCamera.enabled = true;
+        if (playerCamera != null) playerCamera.enabled = true;
+        if (trainCamera != null) trainCamera.enabled = false;
 
-        if (trainCamera != null)
-            trainCamera.enabled = false;
+        // s√≥ um ouvido ligado por vez (sen√£o o Unity reclama de dois AudioListeners)
+        ouvidoJogador = playerCamera != null ? playerCamera.GetComponent<AudioListener>() : null;
+        ouvidoTrem = trainCamera != null ? trainCamera.GetComponent<AudioListener>() : null;
+        if (ouvidoTrem != null) ouvidoTrem.enabled = false;
+        if (ouvidoJogador != null) ouvidoJogador.enabled = true;
 
-        // Pega TODOS os Renderers do Player.
-        // Isso inclui capsule, braÁos, corpo, roupas etc.
-        if (player != null)
-        {
-            playerRenderers =
-                player.GetComponentsInChildren<Renderer>(true);
-        }
-
-        // Mouse sempre travado
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        MontarDica();
     }
 
     void Update()
     {
-        // Com o jogo pausado (Esc), nao mexe na camera nem trava o mouse.
-        if (PauseMenu.IsPaused)
+        bool dentro = trainInteraction != null && trainInteraction.IsInsideTrain;
+        AtualizarDica(dentro);
+
+        // Com o jogo pausado (Esc), n√£o mexe na c√¢mera
+        if (PauseMenu.IsPaused || Keyboard.current == null)
             return;
 
-        if (UnityEngine.InputSystem.Keyboard.current == null)
-            return;
+        if (!dentro) alternada = false;
+        else if (Keyboard.current[teclaTrocar].wasPressedThisFrame && !Leitura.Aberta && !MapaDoMundo.Aberto)
+            alternada = !alternada;
 
-        // =====================================================
-        // CTRL
-        // =====================================================
+        bool ctrl = Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.rightCtrlKey.isPressed;
+        bool querVer = dentro && (alternada || ctrl);
 
-        bool ctrlPressed =
-            UnityEngine.InputSystem.Keyboard.current.leftCtrlKey.isPressed ||
-            UnityEngine.InputSystem.Keyboard.current.rightCtrlKey.isPressed;
+        if (querVer && !viewingTrain) EnterTrainCamera();
+        else if (!querVer && viewingTrain) ExitTrainCamera();
 
-        // =====================================================
-        // S” FUNCIONA DENTRO DO TREM
-        // =====================================================
-
-        bool playerInsideTrain =
-            trainInteraction != null &&
-            trainInteraction.IsInsideTrain;
-
-        if (ctrlPressed && playerInsideTrain)
+        if (viewingTrain)
         {
-            if (!viewingTrain)
-            {
-                EnterTrainCamera();
-            }
-
             UpdateMouse();
             UpdateZoom();
         }
-        else
-        {
-            if (viewingTrain)
-            {
-                ExitTrainCamera();
-            }
-        }
-
-        // Mouse permanece travado
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
-    // =========================================================
-    // IMPORTANTE:
-    // A c‚mera acompanha o trem no LateUpdate.
-    // O trem j· terminou de se mover neste frame.
-    // =========================================================
-
+    // A c√¢mera acompanha o trem depois que ele j√° andou neste quadro
     void LateUpdate()
     {
-        if (!viewingTrain)
-            return;
-
-        UpdateTrainCamera();
+        // mede sempre para onde o trem anda, para a c√¢mera j√° nascer atr√°s dele
+        if (train != null)
+        {
+            Vector3 d = train.position - ultimaPosTrem; d.y = 0f;
+            if (d.sqrMagnitude > 0.0004f && d.sqrMagnitude < 100f) rumoTrem = d.normalized;
+            ultimaPosTrem = train.position;
+        }
+        if (!viewingTrain) return;
+        UpdateTrainCamera(false);
     }
-
-    // =========================================================
-    // ENTRAR NA C¬MERA
-    // =========================================================
 
     void EnterTrainCamera()
     {
-        if (playerCamera == null ||
-            trainCamera == null ||
-            train == null)
+        if (playerCamera == null || trainCamera == null || train == null)
             return;
 
         viewingTrain = true;
-
+        Ativa = true;
         playerCamera.enabled = false;
         trainCamera.enabled = true;
+        if (ouvidoJogador != null) ouvidoJogador.enabled = false;
+        if (ouvidoTrem != null) ouvidoTrem.enabled = true;
 
         HidePlayer();
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        SetCameraPosition();
+        UpdateTrainCamera(true);
     }
-
-    // =========================================================
-    // SAIR DA C¬MERA
-    // =========================================================
 
     void ExitTrainCamera()
     {
         viewingTrain = false;
-
-        if (trainCamera != null)
-            trainCamera.enabled = false;
-
-        if (playerCamera != null)
-            playerCamera.enabled = true;
-
+        Ativa = false;
+        if (trainCamera != null) trainCamera.enabled = false;
+        if (playerCamera != null) playerCamera.enabled = true;
+        if (ouvidoTrem != null) ouvidoTrem.enabled = false;
+        if (ouvidoJogador != null) ouvidoJogador.enabled = true;
         ShowPlayer();
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
-    // =========================================================
-    // MOUSE
-    // =========================================================
+    void OnDisable()
+    {
+        if (viewingTrain) ExitTrainCamera();
+    }
 
     void UpdateMouse()
     {
-        if (Mouse.current == null)
-            return;
-
-        Vector2 mouse =
-            Mouse.current.delta.ReadValue();
-
-        yaw +=
-            mouse.x *
-            mouseSensitivity;
-
-        pitch -=
-            mouse.y *
-            mouseSensitivity;
-
-        pitch =
-            Mathf.Clamp(
-                pitch,
-                minPitch,
-                maxPitch
-            );
+        if (Mouse.current == null) return;
+        Vector2 mouse = Mouse.current.delta.ReadValue();
+        yaw += mouse.x * mouseSensitivity;
+        pitch = Mathf.Clamp(pitch - mouse.y * mouseSensitivity, minPitch, maxPitch);
     }
-
-    // =========================================================
-    // ZOOM
-    // =========================================================
 
     void UpdateZoom()
     {
-        if (Mouse.current == null)
-            return;
-
-        float scroll =
-            Mouse.current.scroll.ReadValue().y;
-
+        if (Mouse.current == null) return;
+        float scroll = Mouse.current.scroll.ReadValue().y;
         if (Mathf.Abs(scroll) > 0.01f)
-        {
-            distance -=
-                scroll *
-                zoomSpeed;
-
-            distance =
-                Mathf.Clamp(
-                    distance,
-                    minDistance,
-                    maxDistance
-                );
-        }
+            distance = Mathf.Clamp(distance - Mathf.Sign(scroll) * zoomSpeed * 0.25f, minDistance, maxDistance);
     }
 
-    // =========================================================
-    // C¬MERA
-    // =========================================================
-
-    void UpdateTrainCamera()
+    void UpdateTrainCamera(bool instantaneo)
     {
-        if (trainCamera == null ||
-            train == null)
-            return;
+        if (trainCamera == null || train == null) return;
 
-        // Ponto que a c‚mera observa
-        Vector3 target =
-            train.position +
-            Vector3.up * targetHeight;
+        // dire√ß√£o em que o trem anda (o eixo do modelo n√£o √© a frente dele), suavizada nas curvas
+        Vector3 frente = rumoTrem.sqrMagnitude > 0.0001f ? rumoTrem : Vector3.ProjectOnPlane(train.forward, Vector3.up);
+        float alvoYaw = frente.sqrMagnitude > 0.0001f ? Mathf.Atan2(frente.x, frente.z) * Mathf.Rad2Deg : yawTrem;
+        yawTrem = instantaneo ? alvoYaw : Mathf.SmoothDampAngle(yawTrem, alvoYaw, ref velYaw, 1f / Mathf.Max(0.1f, seguirCurva));
 
-        // RotaÁ„o controlada pelo mouse
-        Quaternion rotation =
-            Quaternion.Euler(
-                pitch,
-                yaw,
-                0f
-            );
+        Vector3 target = train.position + Vector3.up * targetHeight;
+        Quaternion rotation = Quaternion.Euler(pitch, yawTrem + yaw, 0f);
+        Vector3 direction = rotation * Vector3.forward;
+        Vector3 desiredPosition = target - direction * distance;
+        trainCamera.transform.position = CheckCollision(target, desiredPosition);
 
-        Vector3 direction =
-            rotation * Vector3.forward;
-
-        // PosiÁ„o desejada
-        Vector3 desiredPosition =
-            target -
-            direction * distance;
-
-        // Verifica colis„o
-        Vector3 finalPosition =
-            CheckCollision(
-                target,
-                desiredPosition
-            );
-
-        // SEM LERP
-        // A c‚mera acompanha exatamente o trem.
-        trainCamera.transform.position =
-            finalPosition;
-
-        // Olha para o trem
-        Vector3 lookDirection =
-            target -
-            trainCamera.transform.position;
-
+        Vector3 lookDirection = target - trainCamera.transform.position;
         if (lookDirection.sqrMagnitude > 0.001f)
-        {
-            trainCamera.transform.rotation =
-                Quaternion.LookRotation(
-                    lookDirection.normalized,
-                    Vector3.up
-                );
-        }
+            trainCamera.transform.rotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
     }
 
-    // =========================================================
-    // COLIS√O
-    // =========================================================
-
-    Vector3 CheckCollision(
-        Vector3 target,
-        Vector3 desiredPosition)
+    Vector3 CheckCollision(Vector3 target, Vector3 desiredPosition)
     {
-        Vector3 direction =
-            desiredPosition - target;
-
-        float distanceToCamera =
-            direction.magnitude;
-
-        if (distanceToCamera <= 0.01f)
-            return desiredPosition;
-
+        Vector3 direction = desiredPosition - target;
+        float distanceToCamera = direction.magnitude;
+        if (distanceToCamera <= 0.01f) return desiredPosition;
         direction.Normalize();
-
-        if (Physics.SphereCast(
-            target,
-            collisionRadius,
-            direction,
-            out RaycastHit hit,
-            distanceToCamera,
-            collisionMask,
-            QueryTriggerInteraction.Ignore))
-        {
-            return
-                hit.point -
-                direction *
-                collisionPadding;
-        }
-
+        if (Physics.SphereCast(target, collisionRadius, direction, out RaycastHit hit, distanceToCamera, collisionMask, QueryTriggerInteraction.Ignore))
+            return hit.point - direction * collisionPadding;
         return desiredPosition;
     }
 
-    // =========================================================
-    // POSI«√O INICIAL
-    // =========================================================
-
-    void SetCameraPosition()
-    {
-        UpdateTrainCamera();
-    }
-
-    // =========================================================
-    // ESCONDER PLAYER
-    // =========================================================
-
+    // Esconde o jogador e lembra o que estava ligado (a c√°psula de debug e o corpo da isom√©trica ficam como estavam)
     void HidePlayer()
     {
-        if (playerRenderers == null)
-            return;
-
-        foreach (Renderer renderer in playerRenderers)
+        estadoJogador.Clear();
+        if (player == null) return;
+        foreach (var r in player.GetComponentsInChildren<Renderer>(true))
         {
-            renderer.enabled = false;
+            estadoJogador[r] = r.enabled;
+            r.enabled = false;
         }
     }
-
-    // =========================================================
-    // MOSTRAR PLAYER
-    // =========================================================
 
     void ShowPlayer()
     {
-        if (playerRenderers == null)
-            return;
+        foreach (var kv in estadoJogador)
+            if (kv.Key != null) kv.Key.enabled = kv.Value;
+        estadoJogador.Clear();
+    }
 
-        foreach (Renderer renderer in playerRenderers)
-        {
-            renderer.enabled = true;
-        }
+    // ------------------------------------------------------------ dica na tela
+
+    void MontarDica()
+    {
+        var raiz = new GameObject("Dica da Camera do Trem");
+        raiz.transform.SetParent(transform, false);
+        var canvas = raiz.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 45;
+        var escala = raiz.AddComponent<CanvasScaler>();
+        escala.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        escala.referenceResolution = new Vector2(1920f, 1080f);
+        escala.matchWidthOrHeight = 1f;
+        dica = raiz.AddComponent<CanvasGroup>();
+        dica.alpha = 0f; dica.blocksRaycasts = false; dica.interactable = false;
+
+        var go = new GameObject("Texto", typeof(RectTransform));
+        var rt = (RectTransform)go.transform;
+        rt.SetParent(raiz.transform, false);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+        rt.pivot = new Vector2(0.5f, 0f);
+        rt.anchoredPosition = new Vector2(0f, 36f);
+        rt.sizeDelta = new Vector2(1200f, 40f);
+        textoDica = go.AddComponent<TextMeshProUGUI>();
+        var obj = FindFirstObjectByType<Objetivos>();
+        var fonteHud = obj != null ? obj.GetComponentInChildren<TMP_Text>(true) : null;
+        if (fonteHud != null) textoDica.font = fonteHud.font;
+        textoDica.fontSize = 24f;
+        textoDica.alignment = TextAlignmentOptions.Center;
+        textoDica.color = new Color(0.93f, 0.86f, 0.7f);
+        textoDica.raycastTarget = false;
+    }
+
+    void AtualizarDica(bool dentro)
+    {
+        if (dica == null) return;
+        dica.alpha = Mathf.MoveTowards(dica.alpha, dentro && !PauseMenu.IsPaused ? 1f : 0f, Time.unscaledDeltaTime * 4f);
+        if (dica.alpha <= 0f) return;
+        textoDica.text = viewingTrain
+            ? $"<color=#E8B04A>[{teclaTrocar}]</color> voltar para a cabine    <color=#E8B04A>[mouse]</color> girar    <color=#E8B04A>[roda]</color> zoom"
+            : $"<color=#E8B04A>[{teclaTrocar}]</color> c√¢mera de fora do trem";
     }
 }
