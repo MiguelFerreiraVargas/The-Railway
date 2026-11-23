@@ -15,5 +15,11 @@ public abstract class Interagivel : MonoBehaviour
     /// <summary>Se aparece o aviso e aceita o E agora.</summary>
     public virtual bool Disponivel => isActiveAndEnabled;
 
+    /// <summary>
+    /// Na isométrica, quando várias coisas estão perto, a de maior prioridade ganha
+    /// (ex.: o tênder ganha do trem inteiro, que é grande e sempre "está perto").
+    /// </summary>
+    public virtual float Prioridade => 0f;
+
     public abstract void Interagir();
 }

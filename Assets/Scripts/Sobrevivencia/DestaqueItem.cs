@@ -22,6 +22,7 @@ public class DestaqueItem : MonoBehaviour
     private Outline outline;
     private Interagivel interagivel;
     private float alfa, fase;
+    private Transform jogador;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void AoIniciar()
@@ -66,11 +67,14 @@ public class DestaqueItem : MonoBehaviour
     private void Update()
     {
         if (outline == null) return;
-        var cam = Camera.main;
-        if (cam == null) return;
+        // distância até o jogador (na isométrica a câmera fica longe); sem jogador, até a câmera
+        if (jogador == null) { var p = GameObject.FindWithTag("Player"); if (p != null) jogador = p.transform; }
+        Transform de = jogador != null ? jogador : (Camera.main != null ? Camera.main.transform : null);
+        if (de == null) return;
 
         bool mirado = interagivel != null && PlayerInteractor.Atual == interagivel;
-        float d = Vector3.Distance(cam.transform.position, transform.position);
+        Vector3 olho = jogador != null ? jogador.position + Vector3.up * 1.4f : de.position;
+        float d = Vector3.Distance(olho, transform.position);
         float perto = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(distanciaCheia, distanciaMax, d));
         float pulso = 0.82f + 0.18f * Mathf.Sin((Time.time + fase) * 2.4f);
 
