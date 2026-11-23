@@ -23,6 +23,25 @@ public class PlayerInventory : MonoBehaviour
 
     public int SelectedSlotIndex { get; private set; }
 
+    // Mochila: sem ela, so cabe o que vai nos bolsos (peso em kg, ver Itens)
+    public const string FlagMochila = "jogador.mochila";
+    [Header("Peso")]
+    [SerializeField] private float capacidadeBolsos = 4f;
+    [SerializeField] private float capacidadeMochila = 18f;
+    public bool TemMochila => GameFlags.Has(FlagMochila);
+    public float Capacidade => TemMochila ? capacidadeMochila : capacidadeBolsos;
+    public float PesoAtual
+    {
+        get
+        {
+            float p = 0f;
+            if (slots != null) foreach (var s in slots) if (!string.IsNullOrEmpty(s.itemId)) p += Itens.Peso(s.itemId) * s.quantity;
+            return p;
+        }
+    }
+    /// <summary>Avisado quando algo nao coube (id do item).</summary>
+    public static event Action<string> NaoCoube;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -34,6 +53,7 @@ public class PlayerInventory : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        slotCount = Mathf.Max(slotCount, 16); // um slot por tipo de item
         slots = new InventorySlot[slotCount];
         for (int i = 0; i < slotCount; i++)
             slots[i] = new InventorySlot { itemId = "", quantity = 0 };
@@ -43,6 +63,20 @@ public class PlayerInventory : MonoBehaviour
     {
         if (string.IsNullOrEmpty(itemId) || amount <= 0)
             return false;
+
+        // a mochila nao vai para dentro de si mesma: ela aumenta o que cabe
+        if (itemId == "mochila")
+        {
+            GameFlags.Set(FlagMochila);
+            OnInventoryChanged?.Invoke();
+            return true;
+        }
+
+        if (PesoAtual + Itens.Peso(itemId) * amount > Capacidade + 0.0001f)
+        {
+            NaoCoube?.Invoke(itemId);
+            return false;
+        }
 
         foreach (var slot in slots)
         {
