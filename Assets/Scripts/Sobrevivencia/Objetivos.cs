@@ -92,7 +92,7 @@ public class Objetivos : MonoBehaviour
             else
             {
                 sb.AppendLine($"[ ] {i.texto}");
-                if (!string.IsNullOrEmpty(i.sub)) sb.AppendLine($"<size=80%><color=#C8A060>      {i.sub}</color></size>");
+                if (!string.IsNullOrEmpty(i.sub)) sb.AppendLine($"<size=80%><color=#C8A060>      {i.sub.Replace("\n", "\n      ")}</color></size>");
             }
         }
         texto.text = sb.ToString();

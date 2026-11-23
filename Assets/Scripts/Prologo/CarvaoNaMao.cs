@@ -1,8 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Mostra a pedra de carvão na mão (preso à câmera, canto inferior esquerdo; o direito é da lanterna) enquanto houver
-/// carvão no inventário. Sobe ao pegar, balança de leve ao andar e desce ao colocar na fornalha.
+/// Mostra a pedra de carvão na mão enquanto houver carvão no inventário. Com os braços de primeira
+/// pessoa (CenaPrincipal), o braço esquerdo fecha a mão e a pedra fica no punho; sem braços (prólogo),
+/// a pedra fica presa à câmera no canto inferior esquerdo. Sobe ao pegar e desce ao colocar no trem.
 /// </summary>
 public class CarvaoNaMao : MonoBehaviour
 {
@@ -10,6 +11,13 @@ public class CarvaoNaMao : MonoBehaviour
     [SerializeField] private Vector3 posicao = new Vector3(-0.17f, -0.12f, 0.42f);
     [SerializeField] private Vector3 rotacao = new Vector3(28f, -42f, -22f);
     [SerializeField] private Vector3 tamanho = new Vector3(0.085f, 0.065f, 0.075f);
+    [Header("Na mão esquerda dos braços")]
+    [Tooltip("Animação de onde sai a pose do braço esquerdo segurando a pedra.")]
+    [SerializeField] private string clipeMao = "guard_idle";
+    [SerializeField] [Range(0f, 1f)] private float momentoMao = 0.1f;
+    [Tooltip("Onde a pedra fica em relação ao centro do punho (no espaço da câmera, m).")]
+    [SerializeField] private Vector3 ajusteNaMao = new Vector3(0f, 0.018f, 0f);
+    [SerializeField] private float escalaNaMao = 0.75f;
 
     private static CarvaoNaMao instancia;
     private Transform pedra;
@@ -17,6 +25,9 @@ public class CarvaoNaMao : MonoBehaviour
     private float mostrar; // 0 escondido, 1 na mão
     private Vector3 ultimaPos;
     private float passo;
+    private PoseDoBraco pose;
+    private Renderer malhaBracos;
+    private bool procurouBracos;
 
     /// <summary>Cria (uma vez por cena) a pedra na mão, copiando a malha e o material do monte.</summary>
     public static void Garantir(Renderer modelo)
@@ -67,8 +78,20 @@ public class CarvaoNaMao : MonoBehaviour
             ultimaPos = cam.position;
         }
 
+        if (!procurouBracos)
+        {
+            procurouBracos = true;
+            var bracos = FindFirstObjectByType<MaoPrimeiraPessoa>();
+            if (bracos != null)
+            {
+                pose = PoseDoBraco.Gravar(bracos.transform, ".L", clipeMao, momentoMao);
+                malhaBracos = bracos.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            }
+        }
+
         int qtd = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity(itemId) : 0;
-        bool naMao = qtd > 0 && !Leitura.Aberta;
+        bool isometrica = ModoCamera.Instance != null && ModoCamera.Instance.Isometrico;
+        bool naMao = qtd > 0 && !Leitura.Aberta && !isometrica;
         mostrar = Mathf.MoveTowards(mostrar, naMao ? 1f : 0f, Time.deltaTime * (naMao ? 4f : 6f));
         pedra.gameObject.SetActive(mostrar > 0.001f);
         if (mostrar <= 0.001f) { ultimaPos = cam.position; return; }
@@ -84,6 +107,18 @@ public class CarvaoNaMao : MonoBehaviour
         float e = Mathf.SmoothStep(0f, 1f, mostrar);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
+
+        // com os braços: o esquerdo fecha a mão e a pedra vai junto com o punho
+        if (pose != null && malhaBracos != null && malhaBracos.enabled && malhaBracos.gameObject.activeInHierarchy)
+        {
+            pose.Aplicar(e);
+            pose.Punho(cam.forward, out Vector3 punho, out _);
+            pedra.position = punho + cam.TransformVector(ajusteNaMao);
+            pedra.localRotation = Quaternion.Euler(rotacao);
+            pedra.localScale = tamanho * escalaNaMao;
+            return;
+        }
+        pedra.localScale = tamanho;
         pedra.localPosition = posicao + balanco + new Vector3(0f, (1f - e) * -0.35f, 0f);
         pedra.localRotation = Quaternion.Euler(rotacao + new Vector3((1f - e) * 40f, 0f, 0f));
     }
