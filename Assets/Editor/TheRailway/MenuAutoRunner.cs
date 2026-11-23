@@ -171,6 +171,13 @@ public static class MenuAutoRunner
             return;
         }
 
+        if (command == "menutest")
+        {
+            File.Delete(CommandFile);
+            MenuJogarTest.Start();
+            return;
+        }
+
         if (command == "prologotest")
         {
             File.Delete(CommandFile);
