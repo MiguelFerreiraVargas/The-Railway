@@ -63,14 +63,16 @@ public static class SistemasBuilder
 
         // ---------------------------------------------------------------- armas
         GameObject faca = kit != null ? kit.transform.Find("knife")?.gameObject : null;
-        GameObject machado = kit != null ? kit.transform.Find("Axe")?.gameObject : null;
+        // machado novo (modelo trazido de fora); sem ele, o do kit
+        GameObject machado = MachadoNovo();
+        if (machado == null && kit != null && kit.transform.Find("Axe") != null) machado = kit.transform.Find("Axe").gameObject;
         GameObject rifle = kit != null ? kit.transform.Find("hunting_rifle")?.gameObject : null;
         var armas = Pegar<ArmasDoJogador>(jogador);
         armas.modeloFaca = faca; armas.modeloMachado = machado; armas.modeloRifle = rifle; armas.fonte = fonte;
         EditorUtility.SetDirty(armas);
         Pegar<Desmaio>(jogador);
         // as armas do kit saem de vista: armas são achados raros
-        foreach (var a in new[] { faca, machado, rifle }) if (a != null) { a.SetActive(false); EditorUtility.SetDirty(a); }
+        foreach (var a in new[] { faca, machado, rifle }) if (a != null && a.scene.IsValid()) { a.SetActive(false); EditorUtility.SetDirty(a); }
         ArmasNasEstruturas(faca, machado, rifle);
 
         // ---------------------------------------------------------------- carvão da locomotiva
@@ -80,6 +82,13 @@ public static class SistemasBuilder
             sc.FindProperty("metrosPorCarvao").floatValue = 170f;
             sc.ApplyModifiedPropertiesWithoutUndo();
             log.AppendLine("carvão: 170 m por pedra (a viagem pede ~26 pedras; o mapa tem 35)");
+        }
+
+        // ---------------------------------------------------------------- braços numa câmera própria (não atravessam paredes)
+        if (Camera.main != null && Camera.main.GetComponent<CameraDosBracos>() == null)
+        {
+            Camera.main.gameObject.AddComponent<CameraDosBracos>();
+            log.AppendLine("câmera dos braços na câmera principal (camada FirstPerson)");
         }
 
         // ---------------------------------------------------------------- lanterna e pilhas pelas casas
@@ -231,6 +240,57 @@ public static class SistemasBuilder
         string chave = new string(e.name.ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
         MundoBuilder.TornarColetavel(copia, id, 1, $"estrutura.{chave}.achado.{chaveItem}", acao, fala);
         return true;
+    }
+
+    // ================================================================== machado novo
+
+    private const string PastaMachado = "Assets/Models/Machado";
+
+    private static GameObject MachadoNovo()
+    {
+        string obj = PastaMachado + "/Machado.obj";
+        if (!File.Exists(obj)) { log.AppendLine("AVISO: machado novo não encontrado"); return null; }
+        var imp = AssetImporter.GetAtPath(obj) as ModelImporter;
+        if (imp != null && (!imp.isReadable || imp.materialImportMode != ModelImporterMaterialImportMode.None))
+        {
+            imp.isReadable = true; // a mão lê os vértices para saber qual ponta é a cabeça
+            imp.materialImportMode = ModelImporterMaterialImportMode.None;
+            imp.SaveAndReimport();
+        }
+        var nimp = AssetImporter.GetAtPath(PastaMachado + "/Machado_Normal.png") as TextureImporter;
+        if (nimp != null && nimp.textureType != TextureImporterType.NormalMap) { nimp.textureType = TextureImporterType.NormalMap; nimp.SaveAndReimport(); }
+
+        string caminhoMat = PastaMachado + "/Machado.mat";
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(caminhoMat);
+        if (mat == null) { mat = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(mat, caminhoMat); }
+        mat.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(PastaMachado + "/Machado_Cor.png"));
+        mat.SetColor("_BaseColor", Color.white);
+        var normal = AssetDatabase.LoadAssetAtPath<Texture2D>(PastaMachado + "/Machado_Normal.png");
+        if (normal != null) { mat.SetTexture("_BumpMap", normal); mat.EnableKeyword("_NORMALMAP"); }
+        var metal = AssetDatabase.LoadAssetAtPath<Texture2D>(PastaMachado + "/Machado_Metalico.png");
+        if (metal != null) { mat.SetTexture("_MetallicGlossMap", metal); mat.EnableKeyword("_METALLICSPECGLOSSMAP"); }
+        mat.SetFloat("_Smoothness", 0.35f);
+        EditorUtility.SetDirty(mat);
+
+        var modelo = AssetDatabase.LoadAssetAtPath<GameObject>(obj);
+        var inst = (GameObject)PrefabUtility.InstantiatePrefab(modelo);
+        PrefabUtility.UnpackPrefabInstance(inst, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+        var raiz = new GameObject("Machado");
+        inst.transform.SetParent(raiz.transform, false);
+        foreach (var r in inst.GetComponentsInChildren<MeshRenderer>(true)) r.sharedMaterial = mat;
+        // 60 cm, deitado no chão (no prefab o eixo comprido fica na horizontal)
+        var rs = inst.GetComponentsInChildren<Renderer>();
+        var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        float maior = Mathf.Max(b.size.x, b.size.y, b.size.z);
+        inst.transform.localScale *= 0.6f / Mathf.Max(0.001f, maior);
+        if (b.size.y >= b.size.x && b.size.y >= b.size.z) inst.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+        rs = inst.GetComponentsInChildren<Renderer>();
+        b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        inst.transform.position -= new Vector3(b.center.x, b.min.y, b.center.z);
+        var prefab = PrefabUtility.SaveAsPrefabAsset(raiz, PastaMachado + "/Machado.prefab");
+        Object.DestroyImmediate(raiz);
+        log.AppendLine($"machado novo: {maior:0.00} → 0,6 m");
+        return prefab;
     }
 
     // ================================================================== animais
