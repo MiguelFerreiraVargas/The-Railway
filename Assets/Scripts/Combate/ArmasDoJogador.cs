@@ -129,6 +129,7 @@ public class ArmasDoJogador : MonoBehaviour
             if (kb.digit3Key.wasPressedThisFrame) TentarEquipar("machado");
             if (kb.digit4Key.wasPressedThisFrame) TentarEquipar("rifle");
             if (kb.rKey.wasPressedThisFrame) Recarregar();
+            if (kb.qKey.wasPressedThisFrame) Largar();
         }
         if (Recarregando) return;
         if (Recarregou()) { }
@@ -150,6 +151,73 @@ public class ArmasDoJogador : MonoBehaviour
         Equipada = id;
         fimRecarga = -1f;
         if (som != null) som.PlayOneShot(somClique, 0.5f);
+    }
+
+    // ------------------------------------------------------------ largar (Q)
+
+    /// <summary>Larga no chão o que está na mão: primeiro a pedra de carvão, depois a arma.</summary>
+    public void Largar()
+    {
+        var inv = PlayerInventory.Instance;
+        if (inv == null) return;
+        if (inv.GetQuantity("carvao") > 0)
+        {
+            var monte = FindFirstObjectByType<MonteDeCarvao>();
+            var modelo = monte != null ? monte.GetComponentInChildren<Renderer>() : null;
+            if (!inv.RemoveItem("carvao", 1)) return;
+            var pedra = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pedra.name = "Carvão largado";
+            Destroy(pedra.GetComponent<Collider>());
+            if (modelo != null)
+            {
+                var mf = modelo.GetComponent<MeshFilter>();
+                if (mf != null) pedra.GetComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
+                pedra.GetComponent<Renderer>().sharedMaterial = modelo.sharedMaterial;
+            }
+            pedra.transform.localScale = Vector3.one * 0.14f;
+            NoChao(pedra, "carvao", "PEGAR CARVÃO");
+            return;
+        }
+        if (Equipada != "")
+        {
+            string id = Equipada;
+            GameObject fonte = id == "faca" ? modeloFaca : id == "machado" ? modeloMachado : modeloRifle;
+            Equipar("");
+            if (!inv.RemoveItem(id, 1)) return;
+            if (fonte == null) return;
+            var arma = Instantiate(fonte);
+            arma.name = "Arma largada: " + id;
+            arma.SetActive(true);
+            foreach (var c in arma.GetComponentsInChildren<Collider>(true)) Destroy(c);
+            foreach (var mb in arma.GetComponentsInChildren<MonoBehaviour>(true)) Destroy(mb);
+            NoChao(arma, id, "PEGAR " + Itens.Nome(id).ToUpperInvariant());
+        }
+    }
+
+    // põe o objeto no chão na frente do Cândido e deixa pegar de novo
+    private void NoChao(GameObject go, string id, string acao)
+    {
+        Vector3 frente = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+        Vector3 p = transform.position + frente * 0.9f + Vector3.up * 1.2f;
+        if (Physics.Raycast(p, Vector3.down, out var h, 4f, ~0, QueryTriggerInteraction.Ignore)) p = h.point;
+        else p = transform.position + frente * 0.9f;
+        go.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f) * go.transform.rotation;
+        var rs = go.GetComponentsInChildren<Renderer>();
+        if (rs.Length > 0)
+        {
+            var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            go.transform.position += new Vector3(p.x - b.center.x, p.y - b.min.y + 0.01f, p.z - b.center.z);
+            var bc = go.AddComponent<BoxCollider>();
+            bc.isTrigger = true;
+            bc.center = go.transform.InverseTransformPoint(b.center);
+            var tam = go.transform.InverseTransformVector(b.size);
+            float minimo = 0.35f / Mathf.Max(0.01f, go.transform.lossyScale.x);
+            bc.size = new Vector3(Mathf.Max(Mathf.Abs(tam.x), minimo), Mathf.Max(Mathf.Abs(tam.y), minimo), Mathf.Max(Mathf.Abs(tam.z), minimo));
+        }
+        else go.transform.position = p;
+        var item = go.AddComponent<ItemColetavel>();
+        item.Configurar(id, 1, acao);
+        if (som != null) som.PlayOneShot(somGolpe, 0.4f);
     }
 
     // ------------------------------------------------------------ ataque
@@ -294,7 +362,7 @@ public class ArmasDoJogador : MonoBehaviour
     {
         bool iso = ModoCamera.Instance != null && ModoCamera.Instance.Isometrico;
         bool mostrar = !iso && Equipada != "" && !MaosOcupadas && !TrainCameraView.Ativa && TremInteragivel.ComJogador == null;
-        if (modeloDe != Equipada) TrocarModelo();
+        if (modeloDe != Equipada || lanternaDoModelo != LanternaNaMao.TemLanterna) TrocarModelo();
         if (naMao != null) naMao.SetActive(mostrar);
 
         if (mostrar && naMao != null && cam != null)
@@ -335,9 +403,12 @@ public class ArmasDoJogador : MonoBehaviour
         }
     }
 
+    private bool lanternaDoModelo;
+
     private void TrocarModelo()
     {
         modeloDe = Equipada;
+        lanternaDoModelo = LanternaNaMao.TemLanterna;
         if (naMao != null) Destroy(naMao);
         naMao = null;
         GameObject fonte = Equipada == "faca" ? modeloFaca : Equipada == "machado" ? modeloMachado : Equipada == "rifle" ? modeloRifle : null;
@@ -360,7 +431,7 @@ public class ArmasDoJogador : MonoBehaviour
         }
 
         // tamanho e direção: o eixo comprido vai para a frente
-        float comprimento = Equipada == "faca" ? 0.3f : Equipada == "machado" ? 0.7f : 1.05f;
+        float comprimento = Equipada == "faca" ? 0.22f : Equipada == "machado" ? 0.5f : 0.95f;
         bool pontaLarga = Equipada != "rifle"; // machado: a cabeça (larga) para a frente; faca: a lâmina; rifle: o cano fino
         Orientar(naMao.transform, comprimento, pontaLarga, out Vector3 centro, out Vector3 eixo, out float comp);
 
@@ -370,7 +441,8 @@ public class ArmasDoJogador : MonoBehaviour
             Orientar(naMao.transform, comprimento, pontaLarga, out centro, out eixo, out comp);
             naMao.transform.rotation = Quaternion.FromToRotation(eixo, cam.transform.forward) * naMao.transform.rotation;
             Orientar(naMao.transform, comprimento, pontaLarga, out centro, out eixo, out comp);
-            Vector3 alvo = cam.transform.TransformPoint(new Vector3(0.12f, -0.22f, 0.45f));
+            // com a lanterna na direita, o rifle fica do lado esquerdo
+            Vector3 alvo = cam.transform.TransformPoint(LanternaNaMao.TemLanterna ? new Vector3(-0.14f, -0.24f, 0.44f) : new Vector3(0.14f, -0.22f, 0.42f));
             naMao.transform.position += alvo - centro;
             posNaMao = cam.transform.InverseTransformPoint(naMao.transform.position);
             rotNaMao = Quaternion.Inverse(cam.transform.rotation) * naMao.transform.rotation;
@@ -387,7 +459,10 @@ public class ArmasDoJogador : MonoBehaviour
         poseEsquerda.Aplicar();
         poseEsquerda.Punho(cam.transform.forward, out Vector3 punho, out Vector3 eixoPunho);
         // a lâmina aponta para cima e para a frente, saindo do punho
-        Vector3 para = (eixoPunho * 0.4f + cam.transform.up * 0.9f + cam.transform.forward * 0.4f).normalized;
+        // a lâmina sai do punho para a frente (não tampa a visão); o machado fica mais em pé
+        Vector3 para = Equipada == "machado"
+            ? (cam.transform.up * 0.65f + cam.transform.forward * 0.55f + cam.transform.right * 0.15f + eixoPunho * 0.15f).normalized
+            : (cam.transform.forward * 0.75f + cam.transform.up * 0.5f + eixoPunho * 0.2f).normalized;
         naMao.transform.rotation = Quaternion.FromToRotation(eixo, para) * naMao.transform.rotation;
         Orientar(naMao.transform, comprimento, pontaLarga, out centro, out eixo, out comp);
         float cabo = Equipada == "machado" ? 0.32f : 0.22f; // o punho segura perto do fim do cabo
@@ -525,6 +600,6 @@ public class ArmasDoJogador : MonoBehaviour
         hud.alpha = some ? 0f : 1f;
         var d = Armas[Equipada];
         string extra = Equipada == "rifle" ? (Recarregando ? "  <color=#E8B04A>recarregando...</color>" : $"  {NoPente}/{capacidadePente}  <color=#B0A080>(+{MunicaoNaMochila()})</color>") : "";
-        hud.text = $"<size=70%><color=#B0A080>[1-4] arma   [Tab] mochila</color></size>\n<color=#E8B04A>{d.nome}</color>{extra}";
+        hud.text = $"<size=70%><color=#B0A080>[1-4] arma   [Q] largar   [Tab] mochila</color></size>\n<color=#E8B04A>{d.nome}</color>{extra}";
     }
 }

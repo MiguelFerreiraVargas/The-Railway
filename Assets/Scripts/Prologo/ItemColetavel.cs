@@ -16,6 +16,14 @@ public class ItemColetavel : Interagivel
     [SerializeField] [TextArea] private string fala = "";
     [SerializeField] private AudioClip som;
 
+    /// <summary>Configura em tempo de jogo (item largado pelo Cândido: sem marca de save).</summary>
+    public void Configurar(string id, int qtd, string textoAcao)
+    {
+        itemId = id; quantidade = qtd; acao = textoAcao; flag = ""; fala = "";
+    }
+
+    public string ItemId => itemId;
+
     private IEnumerator Start()
     {
         yield return null; // espera o save ser aplicado
