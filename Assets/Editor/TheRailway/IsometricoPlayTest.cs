@@ -192,6 +192,12 @@ public static class IsometricoPlayTest
         if (!EditorApplication.isPlaying) return;
         EditorApplication.QueuePlayerLoopUpdate();
         if (EditorApplication.timeSinceStartup - inicio > 1300) { log.AppendLine($"TEMPO ESGOTADO no passo {passo}"); Fim(); return; }
+        // travou logo no começo: diz quem está segurando o tempo do jogo
+        if (passo == 0 && EditorApplication.timeSinceStartup - inicio > 20)
+        {
+            log.AppendLine($"TRAVADO NO COMEÇO: Time.time {Time.time:0.00}, timeScale {Time.timeScale}, pausado {EditorApplication.isPaused}, carregando {LoadingScreen.IsLoading}, pausa {PauseMenu.IsPaused}, leitura {Leitura.Aberta}, desmaio {Desmaio.Ativo}, morto {(PlayerStats.Instance != null && PlayerStats.Instance.Morto)}, mochila {TelaMochila.Aberta}, mapa {MapaDoMundo.Aberto}, fpc {(Object.FindFirstObjectByType<FirstPersonController>() != null)}, modo {(ModoCamera.Instance != null)}");
+            Fim(); return;
+        }
 
         var modo = ModoCamera.Instance;
         var fpc = Object.FindFirstObjectByType<FirstPersonController>();
@@ -212,6 +218,13 @@ public static class IsometricoPlayTest
                     Check(mo != null, "a mochila do kit dá para pegar");
                     if (mo != null) mo.Interagir();
                     Check(inv != null && inv.TemMochila && inv.Capacidade > 10f, $"pegou a mochila: cabe {(inv != null ? inv.Capacidade : 0):0} kg");
+                    // a lanterna é achada: começa sem, pega a da casa do começo
+                    Check(!LanternaNaMao.TemLanterna && !LanternaNaMao.MaoDireitaOcupada, "começa sem lanterna (mão direita livre)");
+                    var lt = Object.FindObjectsByType<ItemColetavel>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(i => i.name == "Achado: lanterna" && i.GetComponentInParent<Estrutura>() != null && i.GetComponentInParent<Estrutura>().name == "Dom");
+                    Check(lt != null, "tem lanterna na casa do começo");
+                    if (lt != null) lt.Interagir();
+                    Check(LanternaNaMao.TemLanterna, "pegou a lanterna");
+                    Check(GameObject.Find("Barra do Carvão") != null, "barra do carvão na tela");
                 }
                 log.AppendLine("== lá fora: primeira pessoa ==");
                 Check(!modo.Isometrico, "começa em primeira pessoa");
@@ -239,13 +252,13 @@ public static class IsometricoPlayTest
                     var ombro = br.GetComponentsInChildren<Transform>().First(t => t.name == "upper_arm.R");
                     Check(cl.InverseTransformPoint(ombro.position).z < 0.2f, $"ombro perto dos olhos (z {cl.InverseTransformPoint(ombro.position).z:0.00} m)");
                     var luz = lant.GetComponent<LuzDaLanterna>();
-                    Check(luz != null && luz.Luz != null && luz.Luz.enabled, "lanterna acesa");
+                    Check(luz != null && luz.Luz != null && luz.ligada && LanternaNaMao.TemLanterna && luz.Carga > 0f, "lanterna acesa");
                     if (luz != null && luz.Luz != null)
                     {
                         float para = Vector3.Dot(luz.Luz.transform.forward, cl.forward);
                         Check(para > 0.8f, $"a luz sai da lanterna para a frente ({para:0.00})");
-                        luz.Alternar(); bool apagou = !luz.Luz.enabled; luz.Alternar();
-                        Check(apagou && luz.Luz.enabled, "L apaga e acende");
+                        luz.Alternar(); bool apagou = !luz.ligada; luz.Alternar();
+                        Check(apagou && luz.ligada, "L apaga e acende");
                     }
                 }
                 Captura("fp_1_fora.png");
@@ -440,6 +453,19 @@ public static class IsometricoPlayTest
                 float dPedra = pr != null && maoE != null ? Vector3.Distance(pr.bounds.center, maoE.position) : 99f;
                 Check(pr != null && pr.gameObject.activeInHierarchy && dPedra < 0.15f, $"pedra no punho esquerdo ({dPedra:0.00} m da mão)");
                 Captura("mundo_1b_carvao_na_mao.png");
+                // Q larga a pedra no chão; dá para pegar de volta
+                ArmasDoJogador.Instance.Largar();
+                var largada = Object.FindObjectsByType<ItemColetavel>(FindObjectsSortMode.None).FirstOrDefault(i => i.name == "Carvão largado");
+                Check(PlayerInventory.Instance.GetQuantity("carvao") == 0 && largada != null, "Q larga a pedra no chão (mãos livres)");
+                if (largada != null) largada.Interagir();
+                Check(PlayerInventory.Instance.GetQuantity("carvao") == 1, "pegou a pedra de volta");
+                // pilha: acabando, troca sozinho pela da mochila
+                var luz = LuzDaLanterna.Instance;
+                if (luz != null)
+                {
+                    PlayerInventory.Instance.AddItem("pilha", 1);
+                    luz.Carga = 0.0001f;
+                }
                 var tender = Object.FindFirstObjectByType<CombustivelTrem>();
                 antesCarvao = tender != null ? tender.Carvao : -1f;
                 if (tender != null)
@@ -453,6 +479,8 @@ public static class IsometricoPlayTest
             }
             case 17 when Time.time - marca > 1.0f:
             {
+                if (LuzDaLanterna.Instance != null)
+                    Check(LuzDaLanterna.Instance.Carga > 0.9f && PlayerInventory.Instance.GetQuantity("pilha") == 0, $"pilha acabou: trocou sozinho pela da mochila ({LuzDaLanterna.Instance.Carga * 100f:0}%)");
                 log.AppendLine($"  E usaria: {Usaria()}");
                 {
                     var cm = Camera.main.transform;
