@@ -485,6 +485,15 @@ public static partial class EstruturasBuilder
         foreach (var porta in casa.GetComponentsInChildren<PortaAutomatica>()) evitar.Add((porta.GetComponent<Renderer>().bounds.center, 1.15f));
         foreach (var n in new[] { "Entrada", "Dentro" }) { var c = casa.Find(n); if (c != null) evitar.Add((c.position, 1.3f)); }
         foreach (var it in casa.GetComponentsInChildren<Interagivel>()) evitar.Add((it.transform.position, 0.9f));
+        // casa velha: o pé da escada, o corredor ao lado da rampa e a chegada lá em cima ficam livres
+        if (tipo == Tipo.CasaVelha)
+        {
+            bool emCima = pisoEscolhido != null && pisoEscolhido != est.pisos[0];
+            var livres = emCima
+                ? new[] { new Vector3(0.6f, 0f, -3.5f), new Vector3(0.2f, 0f, -2.3f), new Vector3(-0.8f, 0f, -3.2f), new Vector3(1.6f, 0f, -2.4f) }
+                : new[] { new Vector3(5.6f, 0f, -3.5f), new Vector3(5.6f, 0f, -2.5f), new Vector3(4.7f, 0f, -2.4f), new Vector3(3.6f, 0f, -2.4f), new Vector3(2.5f, 0f, -2.4f), new Vector3(1.5f, 0f, -2.4f) };
+            foreach (var l in livres) evitar.Add((casa.TransformPoint(l), 1.25f));
+        }
         // o caminho da entrada até o meio da casa
         var en = casa.Find("Entrada"); var de = casa.Find("Dentro");
         if (en != null && de != null) for (int i = 1; i < 6; i++) evitar.Add((Vector3.Lerp(en.position, de.position, i / 6f), 0.9f));
