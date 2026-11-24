@@ -12,7 +12,7 @@ public class CombustivelTrem : Interagivel
     [Tooltip("Carvão no começo da cena (o que sobrou do prólogo).")]
     [SerializeField] private float carvaoInicial = 3f;
     [Tooltip("Metros de trilho por pedra de carvão.")]
-    [SerializeField] private float metrosPorCarvao = 120f;
+    [SerializeField] private float metrosPorCarvao = 170f;
     [SerializeField] private AudioClip somCarvao;
 
     public const string FlagObjetivo = "viagem.carvao_trem";
@@ -20,6 +20,7 @@ public class CombustivelTrem : Interagivel
     public float Carvao { get; private set; }
     public bool TemCarvao => Carvao > 0.001f;
     public int Capacidade => capacidade;
+    public float MetrosPorCarvao => metrosPorCarvao;
 
     private float avisouPouco = -1f;
 
@@ -42,6 +43,10 @@ public class CombustivelTrem : Interagivel
 
     private void Start()
     {
+        // barra na direita da tela
+        var obj = FindFirstObjectByType<Objetivos>();
+        var texto = obj != null ? obj.GetComponentInChildren<TMPro.TMP_Text>(true) : null;
+        BarraCarvao.Criar(this, texto != null ? texto.font : null);
         Objetivos.Adicionar(FlagObjetivo, "Manter carvão na locomotiva");
         AtualizarObjetivo();
     }
