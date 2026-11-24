@@ -40,7 +40,7 @@ public class BarraCarvao : MonoBehaviour
         if (tender.Carvao > ultimo + 0.5f) flash = 1f; // abasteceu
         ultimo = tender.Carvao;
         mostrado = Mathf.Lerp(mostrado, alvo, 1f - Mathf.Exp(-dt * 6f));
-        flash = Mathf.MoveTowards(flash, 0f, dt * 1.5f);
+        flash = Mathf.MoveTowards(flash, 0f, dt * 0.45f);
 
         bool andando = trem != null && trem.VelocidadeAtual > 0.1f;
         bool dentro = trem != null && trem.IsInsideTrain;
@@ -69,9 +69,9 @@ public class BarraCarvao : MonoBehaviour
         valor.color = fim ? new Color(1f, 0.45f, 0.35f) : new Color(0.93f, 0.86f, 0.7f);
         metros.text = $"{Mathf.RoundToInt(tender.Carvao * tender.MetrosPorCarvao / 10f) * 10} m";
 
-        // dentro do trem fica bem à vista; fora, mais discreta
+        // só dirigindo o trem (e um instante ao abastecer, para ver encher)
         bool some = MapaDoMundo.Aberto || TelaMochila.Aberta || PauseMenu.IsPaused;
-        grupo.alpha = Mathf.MoveTowards(grupo.alpha, some ? 0f : dentro || fim ? 1f : 0.6f, dt * 3f);
+        grupo.alpha = Mathf.MoveTowards(grupo.alpha, some ? 0f : dentro || flash > 0.05f ? 1f : 0f, dt * 3f);
     }
 
     private void Montar(TMP_FontAsset fonte)
