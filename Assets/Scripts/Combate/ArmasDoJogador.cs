@@ -107,7 +107,8 @@ public class ArmasDoJogador : MonoBehaviour
             || (PlayerStats.Instance != null && PlayerStats.Instance.Morto);
     }
 
-    private bool MaosOcupadas => PlayerInventory.Instance != null && PlayerInventory.Instance.GetQuantity("carvao") > 0;
+    // a arma e o soco são da mão esquerda: ocupada se ela estiver com carvão
+    private bool MaosOcupadas => CarvaoNaMao.NaEsquerda;
 
     private void Update()
     {
@@ -147,6 +148,7 @@ public class ArmasDoJogador : MonoBehaviour
     public void Equipar(string id)
     {
         id = id ?? "";
+        if (id != "" && CarvaoNaMao.NaEsquerda) { Narrador.Falar("A mão esquerda tá com o carvão. [Q] larga."); return; }
         if (id != "" && !Armas.ContainsKey(id)) return;
         Equipada = id;
         fimRecarga = -1f;
@@ -191,6 +193,20 @@ public class ArmasDoJogador : MonoBehaviour
             foreach (var c in arma.GetComponentsInChildren<Collider>(true)) Destroy(c);
             foreach (var mb in arma.GetComponentsInChildren<MonoBehaviour>(true)) Destroy(mb);
             NoChao(arma, id, "PEGAR " + Itens.Nome(id).ToUpperInvariant());
+            return;
+        }
+        if (LanternaNaMao.NaMaoAgora)
+        {
+            // a lanterna também vai para o chão (copia só a malha: os scripts dela não vão junto)
+            var src = FindFirstObjectByType<LanternaNaMao>();
+            var mf = src != null ? src.GetComponentInChildren<MeshFilter>() : null;
+            if (mf == null || !inv.RemoveItem("lanterna", 1)) return;
+            var lt = new GameObject("Lanterna largada");
+            lt.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+            lt.transform.localScale = mf.transform.lossyScale;
+            lt.AddComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
+            lt.AddComponent<MeshRenderer>().sharedMaterials = mf.GetComponent<MeshRenderer>().sharedMaterials;
+            NoChao(lt, "lanterna", "PEGAR LANTERNA");
         }
     }
 
@@ -362,7 +378,7 @@ public class ArmasDoJogador : MonoBehaviour
     {
         bool iso = ModoCamera.Instance != null && ModoCamera.Instance.Isometrico;
         bool mostrar = !iso && Equipada != "" && !MaosOcupadas && !TrainCameraView.Ativa && TremInteragivel.ComJogador == null;
-        if (modeloDe != Equipada || lanternaDoModelo != LanternaNaMao.TemLanterna) TrocarModelo();
+        if (modeloDe != Equipada || lanternaDoModelo != LanternaNaMao.NaMaoAgora) TrocarModelo();
         if (naMao != null) naMao.SetActive(mostrar);
 
         if (mostrar && naMao != null && cam != null)
@@ -408,7 +424,7 @@ public class ArmasDoJogador : MonoBehaviour
     private void TrocarModelo()
     {
         modeloDe = Equipada;
-        lanternaDoModelo = LanternaNaMao.TemLanterna;
+        lanternaDoModelo = LanternaNaMao.NaMaoAgora;
         if (naMao != null) Destroy(naMao);
         naMao = null;
         GameObject fonte = Equipada == "faca" ? modeloFaca : Equipada == "machado" ? modeloMachado : Equipada == "rifle" ? modeloRifle : null;
@@ -429,6 +445,7 @@ public class ArmasDoJogador : MonoBehaviour
             r.sharedMaterials = mr.sharedMaterials;
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
+        CameraDosBracos.PorNaCamada(naMao); // desenhada por cima do mundo: não entra nas paredes
 
         // tamanho e direção: o eixo comprido vai para a frente
         float comprimento = Equipada == "faca" ? 0.22f : Equipada == "machado" ? 0.5f : 0.95f;
@@ -442,7 +459,7 @@ public class ArmasDoJogador : MonoBehaviour
             naMao.transform.rotation = Quaternion.FromToRotation(eixo, cam.transform.forward) * naMao.transform.rotation;
             Orientar(naMao.transform, comprimento, pontaLarga, out centro, out eixo, out comp);
             // com a lanterna na direita, o rifle fica do lado esquerdo
-            Vector3 alvo = cam.transform.TransformPoint(LanternaNaMao.TemLanterna ? new Vector3(-0.14f, -0.24f, 0.44f) : new Vector3(0.14f, -0.22f, 0.42f));
+            Vector3 alvo = cam.transform.TransformPoint(LanternaNaMao.NaMaoAgora ? new Vector3(-0.14f, -0.24f, 0.44f) : new Vector3(0.14f, -0.22f, 0.42f));
             naMao.transform.position += alvo - centro;
             posNaMao = cam.transform.InverseTransformPoint(naMao.transform.position);
             rotNaMao = Quaternion.Inverse(cam.transform.rotation) * naMao.transform.rotation;
@@ -600,6 +617,6 @@ public class ArmasDoJogador : MonoBehaviour
         hud.alpha = some ? 0f : 1f;
         var d = Armas[Equipada];
         string extra = Equipada == "rifle" ? (Recarregando ? "  <color=#E8B04A>recarregando...</color>" : $"  {NoPente}/{capacidadePente}  <color=#B0A080>(+{MunicaoNaMochila()})</color>") : "";
-        hud.text = $"<size=70%><color=#B0A080>[1-4] arma   [Q] largar   [Tab] mochila</color></size>\n<color=#E8B04A>{d.nome}</color>{extra}";
+        hud.text = $"<size=70%><color=#B0A080>[1-4] arma   [Q] largar   [H] lanterna   [Tab] mochila</color></size>\n<color=#E8B04A>{d.nome}</color>{extra}";
     }
 }

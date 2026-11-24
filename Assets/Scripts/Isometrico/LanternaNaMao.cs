@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// A lanterna fica segurada na mão direita dos braços de primeira pessoa: o braço direito fica
@@ -30,16 +31,43 @@ public class LanternaNaMao : MonoBehaviour
     public Transform Mao { get; private set; }
 
     /// <summary>Se alguma lanterna está ocupando a mão direita agora.</summary>
-    public static bool MaoDireitaOcupada => ativas > 0 && TemLanterna;
+    public static bool MaoDireitaOcupada => ativas > 0 && NaMaoAgora;
 
     /// <summary>A lanterna é achada no mundo (casas): só fica na mão depois de pegar uma.</summary>
     public static bool TemLanterna => PlayerInventory.Instance != null && PlayerInventory.Instance.GetQuantity("lanterna") > 0;
+
+    /// <summary>Guardada na mochila (H): a mão direita fica livre.</summary>
+    public static bool Guardada { get; private set; }
+
+    /// <summary>Tem lanterna e ela está na mão (não guardada).</summary>
+    public static bool NaMaoAgora => TemLanterna && !Guardada;
+
+    public Key teclaGuardar = Key.H;
+
+    /// <summary>Guarda ou tira a lanterna da mão. Não tira se a mão direita estiver com carvão.</summary>
+    public static bool Guardar(bool guardar)
+    {
+        if (!guardar && Guardada && CarvaoNaMao.NaDireita) { Narrador.Falar("A mão direita tá com o carvão."); return false; }
+        Guardada = guardar;
+        return true;
+    }
+
+    private void Update()
+    {
+        if (!TemLanterna) return;
+        // as duas mãos cheias de carvão: a lanterna vai para a mochila
+        int carvao = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity("carvao") : 0;
+        if (!Guardada && carvao >= 2) Guardada = true;
+        var kb = Keyboard.current;
+        if (kb == null || PauseMenu.IsPaused || Leitura.Aberta || TelaMochila.Aberta) return;
+        if (kb[teclaGuardar].wasPressedThisFrame) Guardar(!Guardada);
+    }
 
     private Renderer[] malhas;
     private static int ativas;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void Zerar() => ativas = 0;
+    private static void Zerar() { ativas = 0; Guardada = false; }
 
     private Vector3 posNaMao;       // posição da lanterna no espaço da mão
     private Quaternion rotNaMao;    // rotação da lanterna relativa à mão
@@ -104,7 +132,7 @@ public class LanternaNaMao : MonoBehaviour
         if (Mao == null) return;
         // sem lanterna no inventário: some, e o braço direito fica livre (o Animator manda)
         if (malhas == null) malhas = GetComponentsInChildren<Renderer>(true);
-        bool tem = TemLanterna;
+        bool tem = NaMaoAgora;
         bool iso = ModoCamera.Instance != null && ModoCamera.Instance.Isometrico;
         foreach (var r in malhas) if (r != null && r.enabled != (tem && !iso)) r.enabled = tem && !iso;
         if (!tem) return;

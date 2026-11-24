@@ -134,7 +134,7 @@ public class TelaMochila : MonoBehaviour
         var desc = Texto("Desc", linha, $"{info.descricao}  <color=#807060>{info.peso * qtd:0.0} kg</color>", 16f, TextAlignmentOptions.Left, new Color(0.75f, 0.68f, 0.55f));
         desc.rectTransform.anchoredPosition = new Vector2(-150f, -14f); desc.rectTransform.sizeDelta = new Vector2(420f, 22f);
 
-        string acao = info.tipo == Itens.Tipo.Comida ? "COMER" : info.tipo == Itens.Tipo.Bebida ? "BEBER" : info.tipo == Itens.Tipo.Arma ? (equipada ? "GUARDAR" : "EQUIPAR") : info.id == "pilha" ? "PÔR NA LANTERNA" : null;
+        string acao = info.tipo == Itens.Tipo.Comida ? "COMER" : info.tipo == Itens.Tipo.Bebida ? "BEBER" : info.tipo == Itens.Tipo.Arma ? (equipada ? "GUARDAR" : "EQUIPAR") : info.id == "pilha" ? "PÔR NA LANTERNA" : info.id == "lanterna" ? (LanternaNaMao.Guardada ? "SEGURAR" : "GUARDAR") : null;
         if (acao != null) Botao(linha, acao, new Vector2(185f, 0f), () => Usar(info.id));
         if (info.id == "lanterna" && LuzDaLanterna.Instance != null)
             desc.text = $"Pilha: {Mathf.RoundToInt(LuzDaLanterna.Instance.Carga * 100f)}%   [L] liga e desliga  <color=#807060>{info.peso:0.0} kg</color>";
@@ -146,7 +146,11 @@ public class TelaMochila : MonoBehaviour
         var info = Itens.Get(id);
         var inv = PlayerInventory.Instance;
         var stats = PlayerStats.Instance;
-        if (id == "pilha")
+        if (id == "lanterna")
+        {
+            LanternaNaMao.Guardar(!LanternaNaMao.Guardada);
+        }
+        else if (id == "pilha")
         {
             var luz = LuzDaLanterna.Instance;
             if (!LanternaNaMao.TemLanterna) Narrador.Falar("Pilha... mas cadê a lanterna?");

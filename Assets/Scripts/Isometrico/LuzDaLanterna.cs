@@ -70,7 +70,7 @@ public class LuzDaLanterna : MonoBehaviour
 
     private void Update()
     {
-        bool tem = LanternaNaMao.TemLanterna;
+        bool tem = LanternaNaMao.NaMaoAgora;
         if (tem && ligada && Carga > 0f)
         {
             Carga = Mathf.Max(0f, Carga - Time.deltaTime / Mathf.Max(1f, duracaoMinutos * 60f));
@@ -115,7 +115,7 @@ public class LuzDaLanterna : MonoBehaviour
         var modo = ModoCamera.Instance;
         bool iso = modo != null && modo.Isometrico;
         // só acende com a lanterna na mão e pilha com carga; fraca, pisca
-        Luz.enabled = ligada && LanternaNaMao.TemLanterna && Carga > 0f;
+        Luz.enabled = ligada && LanternaNaMao.NaMaoAgora && Carga > 0f;
         float forca = 1f;
         if (Carga < cargaFraca)
         {
