@@ -32,6 +32,8 @@ public static class Itens
         Add("machado", "Machado", 1.5f, Tipo.Arma, "Corpo a corpo pesado. Corta árvores caídas.");
         Add("rifle", "Rifle de caça", 3.5f, Tipo.Arma, "Atira longe. Usa munição.");
         Add("carvao", "Pedra de carvão", 0f, Tipo.Material, "Vai na mão até o tênder.");
+        Add("lanterna", "Lanterna", 0.4f, Tipo.Outro, "Na mão direita. [L] liga e desliga.");
+        Add("pilha", "Pilha", 0.05f, Tipo.Outro, "Recarrega a lanterna.");
     }
 
     private static void Add(string id, string nome, float peso, Tipo tipo, string descricao)

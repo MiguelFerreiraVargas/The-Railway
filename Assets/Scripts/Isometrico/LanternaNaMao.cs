@@ -30,7 +30,12 @@ public class LanternaNaMao : MonoBehaviour
     public Transform Mao { get; private set; }
 
     /// <summary>Se alguma lanterna está ocupando a mão direita agora.</summary>
-    public static bool MaoDireitaOcupada => ativas > 0;
+    public static bool MaoDireitaOcupada => ativas > 0 && TemLanterna;
+
+    /// <summary>A lanterna é achada no mundo (casas): só fica na mão depois de pegar uma.</summary>
+    public static bool TemLanterna => PlayerInventory.Instance != null && PlayerInventory.Instance.GetQuantity("lanterna") > 0;
+
+    private Renderer[] malhas;
     private static int ativas;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -97,6 +102,12 @@ public class LanternaNaMao : MonoBehaviour
     private void LateUpdate()
     {
         if (Mao == null) return;
+        // sem lanterna no inventário: some, e o braço direito fica livre (o Animator manda)
+        if (malhas == null) malhas = GetComponentsInChildren<Renderer>(true);
+        bool tem = TemLanterna;
+        bool iso = ModoCamera.Instance != null && ModoCamera.Instance.Isometrico;
+        foreach (var r in malhas) if (r != null && r.enabled != (tem && !iso)) r.enabled = tem && !iso;
+        if (!tem) return;
         // o Animator já rodou neste quadro: o braço que segura volta para a pose do punho fechado
         pose.Aplicar();
         transform.SetPositionAndRotation(Mao.TransformPoint(posNaMao), Mao.rotation * rotNaMao);

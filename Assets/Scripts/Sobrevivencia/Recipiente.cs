@@ -25,9 +25,9 @@ public class Recipiente : Interagivel
     private static readonly Dictionary<Tipo, Item[]> Tabelas = new Dictionary<Tipo, Item[]>
     {
         { Tipo.PrateleiraLoja, new[] { I("biscoito", 1, 40), I("soda", 1, 25), I("lata_feijao", 1, 20), I("fosforos", 1, 8), I("agua", 1, 7) } },
-        { Tipo.Estoque,        new[] { I("lata_feijao", 2, 30), I("agua", 2, 25), I("biscoito", 2, 20), I("fosforos", 1, 12), I("municao", 6, 8), I("soda", 2, 5), I("rifle", 1, 2), I("faca", 1, 3) } },
+        { Tipo.Estoque,        new[] { I("lata_feijao", 2, 30), I("agua", 2, 25), I("biscoito", 2, 20), I("fosforos", 1, 12), I("municao", 6, 8), I("soda", 2, 5), I("rifle", 1, 2), I("faca", 1, 3), I("pilha", 2, 10) } },
         { Tipo.Geladeira,      new[] { I("agua", 1, 45), I("soda", 1, 40), I("lata_feijao", 1, 15) } },
-        { Tipo.Armario,        new[] { I("lata_feijao", 1, 35), I("fosforos", 1, 20), I("biscoito", 1, 20), I("agua", 1, 15), I("municao", 4, 10), I("faca", 1, 3), I("machado", 1, 2) } },
+        { Tipo.Armario,        new[] { I("lata_feijao", 1, 35), I("fosforos", 1, 20), I("biscoito", 1, 20), I("agua", 1, 15), I("municao", 4, 10), I("faca", 1, 3), I("machado", 1, 2), I("pilha", 1, 8), I("lanterna", 1, 3) } },
     };
 
     private static readonly Dictionary<string, (string um, string varios)> Nomes = new Dictionary<string, (string, string)>
@@ -41,6 +41,8 @@ public class Recipiente : Interagivel
         { "faca", ("uma faca", "facas") },
         { "machado", ("um machado", "machados") },
         { "rifle", ("um rifle de caça", "rifles") },
+        { "lanterna", ("uma lanterna", "lanternas") },
+        { "pilha", ("uma pilha", "pilhas") },
     };
 
     private static Item I(string id, int qtd, int peso) => new Item { id = id, qtd = qtd, peso = peso };
@@ -84,7 +86,7 @@ public class Recipiente : Interagivel
             foreach (var it in tabela)
             {
                 // arma que já tem não vem de novo (as armas são raras e únicas)
-                if (sorte < it.peso && Itens.Get(it.id).tipo == Itens.Tipo.Arma && (achados.ContainsKey(it.id) || (PlayerInventory.Instance != null && PlayerInventory.Instance.GetQuantity(it.id) > 0))) break;
+                if (sorte < it.peso && (Itens.Get(it.id).tipo == Itens.Tipo.Arma || it.id == "lanterna") && (achados.ContainsKey(it.id) || (PlayerInventory.Instance != null && PlayerInventory.Instance.GetQuantity(it.id) > 0))) break;
                 if (sorte < it.peso)
                 {
                     achados.TryGetValue(it.id, out int ja);

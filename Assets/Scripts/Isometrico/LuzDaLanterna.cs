@@ -25,8 +25,21 @@ public class LuzDaLanterna : MonoBehaviour
     public float inclinacaoIso = 18f;
     public AudioClip somClique;
 
+    [Header("Bateria")]
+    [Tooltip("Minutos de luz ligada com uma pilha cheia.")]
+    public float duracaoMinutos = 6f;
+    [Tooltip("Abaixo disto (0..1) a luz começa a piscar.")]
+    public float cargaFraca = 0.15f;
+
     /// <summary>A luz criada (para testes).</summary>
     public Light Luz { get; private set; }
+    public static LuzDaLanterna Instance { get; private set; }
+
+    /// <summary>Carga da pilha (0 a 1). Uma pilha nova enche; acabando, troca sozinho se tiver pilha na mochila.</summary>
+    public float Carga { get; set; } = 1f;
+    public bool Acesa => Luz != null && Luz.enabled;
+    private bool avisouFraca, avisouVazia;
+    private float piscar;
 
     private LanternaNaMao naMao;
     private MeshFilter malha;
@@ -34,6 +47,7 @@ public class LuzDaLanterna : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
         naMao = GetComponent<LanternaNaMao>();
         malha = GetComponentInChildren<MeshFilter>();
 
@@ -56,14 +70,42 @@ public class LuzDaLanterna : MonoBehaviour
 
     private void Update()
     {
+        bool tem = LanternaNaMao.TemLanterna;
+        if (tem && ligada && Carga > 0f)
+        {
+            Carga = Mathf.Max(0f, Carga - Time.deltaTime / Mathf.Max(1f, duracaoMinutos * 60f));
+            if (Carga <= cargaFraca && !avisouFraca) { avisouFraca = true; Narrador.Falar("A luz tá fraquejando... a pilha tá no fim."); }
+            if (Carga <= 0f) TrocarPilha();
+        }
         if (Keyboard.current == null || PauseMenu.IsPaused || Leitura.Aberta) return;
-        if (Keyboard.current[tecla].wasPressedThisFrame) Alternar();
+        if (Keyboard.current[tecla].wasPressedThisFrame && tem) Alternar();
+    }
+
+    // pilha acabou: põe uma da mochila, se tiver
+    private void TrocarPilha()
+    {
+        var inv = PlayerInventory.Instance;
+        if (inv != null && inv.GetQuantity("pilha") > 0 && inv.RemoveItem("pilha", 1))
+        {
+            Carga = 1f; avisouFraca = false; avisouVazia = false;
+            Narrador.Falar("Pilha nova. Luz de volta.");
+            return;
+        }
+        if (!avisouVazia) { avisouVazia = true; Narrador.Falar("A pilha morreu. Preciso achar outra."); }
+    }
+
+    /// <summary>Pôr uma pilha agora (pela mochila).</summary>
+    public bool PorPilha()
+    {
+        var inv = PlayerInventory.Instance;
+        if (inv == null || inv.GetQuantity("pilha") <= 0 || !inv.RemoveItem("pilha", 1)) return false;
+        Carga = 1f; avisouFraca = false; avisouVazia = false;
+        return true;
     }
 
     public void Alternar()
     {
         ligada = !ligada;
-        if (Luz != null) Luz.enabled = ligada;
         if (somClique != null) som.PlayOneShot(somClique);
     }
 
@@ -72,7 +114,16 @@ public class LuzDaLanterna : MonoBehaviour
         if (Luz == null) return;
         var modo = ModoCamera.Instance;
         bool iso = modo != null && modo.Isometrico;
-        Luz.intensity = iso ? intensidadeIso : intensidade;
+        // só acende com a lanterna na mão e pilha com carga; fraca, pisca
+        Luz.enabled = ligada && LanternaNaMao.TemLanterna && Carga > 0f;
+        float forca = 1f;
+        if (Carga < cargaFraca)
+        {
+            piscar -= Time.deltaTime;
+            if (piscar <= 0f) piscar = Random.Range(0.04f, 0.3f);
+            forca = Mathf.Lerp(0.15f, 1f, Carga / cargaFraca) * (piscar < 0.08f ? Random.Range(0.1f, 0.6f) : 1f);
+        }
+        Luz.intensity = (iso ? intensidadeIso : intensidade) * forca;
         Luz.range = iso ? alcanceIso : alcance;
 
         if (iso || (naMao != null && naMao.Mao == null))
