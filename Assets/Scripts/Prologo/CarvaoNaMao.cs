@@ -1,9 +1,10 @@
 using UnityEngine;
 
 /// <summary>
-/// Mostra a pedra de carvão na mão enquanto houver carvão no inventário. Com os braços de primeira
-/// pessoa (CenaPrincipal), o braço esquerdo fecha a mão e a pedra fica no punho; sem braços (prólogo),
-/// a pedra fica presa à câmera no canto inferior esquerdo. Sobe ao pegar e desce ao colocar no trem.
+/// Mostra as pedras de carvão nas mãos enquanto houver carvão no inventário. Com os braços de
+/// primeira pessoa (CenaPrincipal) cabe uma pedra em cada mão livre: a primeira vai para a direita
+/// (se a lanterna não estiver nela) e a segunda para a esquerda (se não tiver arma). Sem braços
+/// (prólogo) é uma pedra só, presa à câmera no canto inferior esquerdo.
 /// </summary>
 public class CarvaoNaMao : MonoBehaviour
 {
@@ -11,8 +12,8 @@ public class CarvaoNaMao : MonoBehaviour
     [SerializeField] private Vector3 posicao = new Vector3(-0.17f, -0.12f, 0.42f);
     [SerializeField] private Vector3 rotacao = new Vector3(28f, -42f, -22f);
     [SerializeField] private Vector3 tamanho = new Vector3(0.085f, 0.065f, 0.075f);
-    [Header("Na mão esquerda dos braços")]
-    [Tooltip("Animação de onde sai a pose do braço esquerdo segurando a pedra.")]
+    [Header("Nas mãos dos braços")]
+    [Tooltip("Animação de onde sai a pose do braço segurando a pedra.")]
     [SerializeField] private string clipeMao = "guard_idle";
     [SerializeField] [Range(0f, 1f)] private float momentoMao = 0.1f;
     [Tooltip("Onde a pedra fica em relação ao centro do punho (no espaço da câmera, m).")]
@@ -20,16 +21,16 @@ public class CarvaoNaMao : MonoBehaviour
     [SerializeField] private float escalaNaMao = 0.75f;
 
     private static CarvaoNaMao instancia;
-    private Transform pedra;
+    private Transform pedraE, pedraD;
     private Transform cam;
-    private float mostrar; // 0 escondido, 1 na mão
+    private float mostrarE, mostrarD;
     private Vector3 ultimaPos;
     private float passo;
-    private PoseDoBraco pose;
+    private PoseDoBraco poseE, poseD;
     private Renderer malhaBracos;
     private bool procurouBracos;
 
-    /// <summary>Cria (uma vez por cena) a pedra na mão, copiando a malha e o material do monte.</summary>
+    /// <summary>Cria (uma vez por cena) as pedras das mãos, copiando a malha e o material do monte.</summary>
     public static void Garantir(Renderer modelo)
     {
         if (instancia != null) return;
@@ -38,12 +39,30 @@ public class CarvaoNaMao : MonoBehaviour
         instancia.Montar(modelo);
     }
 
-    public static bool Visivel => instancia != null && instancia.pedra != null && instancia.pedra.gameObject.activeSelf;
+    public static bool Visivel => instancia != null && ((instancia.pedraE != null && instancia.pedraE.gameObject.activeSelf) || (instancia.pedraD != null && instancia.pedraD.gameObject.activeSelf));
 
-    private void Montar(Renderer modelo)
+    // ------------------------------------------------------------ mãos
+
+    private static int Quantidade => PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity("carvao") : 0;
+    private static bool TemBracos => instancia != null && instancia.poseE != null;
+
+    /// <summary>A direita pode segurar carvão (tem braços e a lanterna não está nela).</summary>
+    public static bool DireitaLivre => TemBracos && !LanternaNaMao.MaoDireitaOcupada;
+    /// <summary>A esquerda pode segurar carvão (sem arma de mão equipada).</summary>
+    public static bool EsquerdaLivre => ArmasDoJogador.Instance == null || ArmasDoJogador.Instance.Equipada == "";
+
+    /// <summary>Quantas pedras cabem nas mãos agora (no prólogo, sem braços, é uma).</summary>
+    public static int Capacidade => !TemBracos ? 1 : (DireitaLivre ? 1 : 0) + (EsquerdaLivre ? 1 : 0);
+
+    /// <summary>Tem pedra na mão direita (a primeira vai para ela quando está livre).</summary>
+    public static bool NaDireita => Quantidade >= 1 && DireitaLivre;
+    /// <summary>Tem pedra na mão esquerda.</summary>
+    public static bool NaEsquerda => Quantidade >= 2 || (Quantidade == 1 && !DireitaLivre);
+
+    private Transform NovaPedra(Renderer modelo, string nome)
     {
         var p = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        p.name = "Pedra";
+        p.name = nome;
         Destroy(p.GetComponent<Collider>());
         var mf = modelo != null ? modelo.GetComponent<MeshFilter>() : null;
         if (mf != null && mf.sharedMesh != null) p.GetComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
@@ -56,10 +75,17 @@ public class CarvaoNaMao : MonoBehaviour
         r.sharedMaterial = m;
         r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         r.receiveShadows = false;
-        pedra = p.transform;
-        pedra.SetParent(transform, false);
-        pedra.localScale = tamanho;
+        p.transform.SetParent(transform, false);
+        p.transform.localScale = tamanho;
         p.SetActive(false);
+        CameraDosBracos.PorNaCamada(p);
+        return p.transform;
+    }
+
+    private void Montar(Renderer modelo)
+    {
+        pedraE = NovaPedra(modelo, "Pedra (esquerda)");
+        pedraD = NovaPedra(modelo, "Pedra (direita)");
     }
 
     private void OnDestroy()
@@ -69,7 +95,7 @@ public class CarvaoNaMao : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (pedra == null) return;
+        if (pedraE == null) return;
         if (cam == null)
         {
             if (Camera.main == null) return;
@@ -84,42 +110,54 @@ public class CarvaoNaMao : MonoBehaviour
             var bracos = FindFirstObjectByType<MaoPrimeiraPessoa>();
             if (bracos != null)
             {
-                pose = PoseDoBraco.Gravar(bracos.transform, ".L", clipeMao, momentoMao);
+                poseE = PoseDoBraco.Gravar(bracos.transform, ".L", clipeMao, momentoMao);
+                poseD = PoseDoBraco.Gravar(bracos.transform, ".R", clipeMao, momentoMao);
                 malhaBracos = bracos.GetComponentInChildren<SkinnedMeshRenderer>(true);
             }
         }
 
-        int qtd = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity(itemId) : 0;
         bool isometrica = ModoCamera.Instance != null && ModoCamera.Instance.Isometrico;
-        bool naMao = qtd > 0 && !Leitura.Aberta && !isometrica;
-        mostrar = Mathf.MoveTowards(mostrar, naMao ? 1f : 0f, Time.deltaTime * (naMao ? 4f : 6f));
-        pedra.gameObject.SetActive(mostrar > 0.001f);
-        if (mostrar <= 0.001f) { ultimaPos = cam.position; return; }
+        bool podeVer = !Leitura.Aberta && !isometrica;
+        bool comBracos = poseE != null && malhaBracos != null && malhaBracos.enabled && malhaBracos.gameObject.activeInHierarchy;
+        bool querE = podeVer && (comBracos ? NaEsquerda : Quantidade > 0);
+        bool querD = podeVer && comBracos && poseD != null && NaDireita;
+        mostrarE = Mathf.MoveTowards(mostrarE, querE ? 1f : 0f, Time.deltaTime * (querE ? 4f : 6f));
+        mostrarD = Mathf.MoveTowards(mostrarD, querD ? 1f : 0f, Time.deltaTime * (querD ? 4f : 6f));
+        pedraE.gameObject.SetActive(mostrarE > 0.001f);
+        pedraD.gameObject.SetActive(mostrarD > 0.001f);
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
+        if (mostrarE <= 0.001f && mostrarD <= 0.001f) { ultimaPos = cam.position; return; }
 
-        // balanço de caminhada
+        if (comBracos)
+        {
+            // cada mão fecha e a pedra vai junto com o punho
+            NaMao(pedraE, poseE, mostrarE);
+            NaMao(pedraD, poseD, mostrarD);
+            return;
+        }
+
+        // prólogo (sem braços): presa à câmera, com balanço de caminhada
         Vector3 delta = cam.position - ultimaPos; delta.y = 0f;
         ultimaPos = cam.position;
         float vel = Time.deltaTime > 0f ? delta.magnitude / Time.deltaTime : 0f;
         passo += Time.deltaTime * Mathf.Lerp(1.2f, 9f, Mathf.Clamp01(vel / 4f));
         float amp = Mathf.Lerp(0.004f, 0.016f, Mathf.Clamp01(vel / 4f));
         Vector3 balanco = new Vector3(Mathf.Sin(passo) * amp, -Mathf.Abs(Mathf.Cos(passo)) * amp, 0f);
+        float e = Mathf.SmoothStep(0f, 1f, mostrarE);
+        pedraE.localScale = tamanho;
+        pedraE.localPosition = posicao + balanco + new Vector3(0f, (1f - e) * -0.35f, 0f);
+        pedraE.localRotation = Quaternion.Euler(rotacao + new Vector3((1f - e) * 40f, 0f, 0f));
+    }
 
+    private void NaMao(Transform pedra, PoseDoBraco pose, float mostrar)
+    {
+        if (pose == null || mostrar <= 0.001f) return;
         float e = Mathf.SmoothStep(0f, 1f, mostrar);
-        transform.localPosition = Vector3.zero;
-        transform.localRotation = Quaternion.identity;
-
-        // com os braços: o esquerdo fecha a mão e a pedra vai junto com o punho
-        if (pose != null && malhaBracos != null && malhaBracos.enabled && malhaBracos.gameObject.activeInHierarchy)
-        {
-            pose.Aplicar(e);
-            pose.Punho(cam.forward, out Vector3 punho, out _);
-            pedra.position = punho + cam.TransformVector(ajusteNaMao);
-            pedra.localRotation = Quaternion.Euler(rotacao);
-            pedra.localScale = tamanho * escalaNaMao;
-            return;
-        }
-        pedra.localScale = tamanho;
-        pedra.localPosition = posicao + balanco + new Vector3(0f, (1f - e) * -0.35f, 0f);
-        pedra.localRotation = Quaternion.Euler(rotacao + new Vector3((1f - e) * 40f, 0f, 0f));
+        pose.Aplicar(e);
+        pose.Punho(cam.forward, out Vector3 punho, out _);
+        pedra.position = punho + cam.TransformVector(ajusteNaMao);
+        pedra.localRotation = Quaternion.Euler(rotacao);
+        pedra.localScale = tamanho * escalaNaMao;
     }
 }

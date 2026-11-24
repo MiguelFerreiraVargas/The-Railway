@@ -88,7 +88,7 @@ public class CombustivelTrem : Interagivel
 
     private void AtualizarObjetivo()
     {
-        string detalhe = $"no tênder: {Mathf.CeilToInt(Carvao)}/{capacidade}" + (NaMao > 0 ? "   (uma pedra na mão)" : "");
+        string detalhe = $"no tênder: {Mathf.CeilToInt(Carvao)}/{capacidade}" + (NaMao > 1 ? $"   ({NaMao} pedras nas mãos)" : NaMao > 0 ? "   (uma pedra na mão)" : "");
         // onde achar mais: o monte com carvão mais perto e o mapa
         var cam = Camera.main;
         if (cam != null && MonteDeCarvao.MaisPerto(cam.transform.position, out float dist) != null)

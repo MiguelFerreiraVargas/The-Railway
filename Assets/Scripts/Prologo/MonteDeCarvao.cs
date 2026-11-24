@@ -37,7 +37,7 @@ public class MonteDeCarvao : Interagivel
 
     private int NaMao => PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity(itemId) : 0;
 
-    public override string Texto => NaMao > 0 ? "MÃOS OCUPADAS" : acao;
+    public override string Texto => NaMao >= CarvaoNaMao.Capacidade ? "MÃOS OCUPADAS" : acao;
 
     public override bool Disponivel => base.Disponivel && (string.IsNullOrEmpty(flagEncerra) || !GameFlags.Has(flagEncerra)) && Restantes != 0;
 
@@ -95,7 +95,7 @@ public class MonteDeCarvao : Interagivel
 
     public override void Interagir()
     {
-        if (NaMao > 0)
+        if (NaMao >= CarvaoNaMao.Capacidade)
         {
             Narrador.Falar(falaMaoCheia);
             return;

@@ -39,6 +39,12 @@ public class ItemColetavel : Interagivel
         else
         {
             var inv = PlayerInventory.Instance;
+            // carvão vai na mão: uma pedra por mão livre
+            if (itemId == "carvao" && inv != null && inv.GetQuantity("carvao") >= CarvaoNaMao.Capacidade)
+            {
+                Narrador.Falar("Mãos ocupadas.");
+                return;
+            }
             if (inv == null || !inv.AddItem(itemId, quantidade))
             {
                 Narrador.Falar("Não cabe mais nada nos bolsos.");

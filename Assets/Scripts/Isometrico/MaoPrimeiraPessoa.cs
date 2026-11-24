@@ -22,8 +22,12 @@ public class MaoPrimeiraPessoa : MonoBehaviour
     {
         if (animator == null || !animator.isActiveAndEnabled) return;
         if (ModoCamera.Instance != null && ModoCamera.Instance.Isometrico) return;
-        // a direita está com a lanterna: pega com a esquerda
-        if (!string.IsNullOrEmpty(boolMaoDireita)) animator.SetBool(boolMaoDireita, !LanternaNaMao.MaoDireitaOcupada);
+        // pega com a mão que vai segurar: o carvão vai primeiro para a direita (se a lanterna não estiver
+        // nela) e o segundo para a esquerda; o resto, com a mão que estiver livre
+        bool pegouCarvao = alvo is MonteDeCarvao || (alvo is ItemColetavel ic && ic.ItemId == "carvao");
+        int carvao = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity("carvao") : 0;
+        bool direita = !LanternaNaMao.MaoDireitaOcupada && (pegouCarvao ? carvao <= 1 : !CarvaoNaMao.NaDireita);
+        if (!string.IsNullOrEmpty(boolMaoDireita)) animator.SetBool(boolMaoDireita, direita);
         if (!string.IsNullOrEmpty(gatilhoPegar)) animator.SetTrigger(gatilhoPegar);
     }
 }
