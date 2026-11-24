@@ -7,6 +7,7 @@ using StarterAssets;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
 /// <summary>
@@ -181,6 +182,36 @@ public static class IsometricoPlayTest
         p.CinemachineCameraTarget.transform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
     }
 
+    // pega uma pedra como o E faria (o monte e depois o aviso que anima os braços)
+    private static void PegarCarvao(MonteDeCarvao monte)
+    {
+        if (monte == null) return;
+        monte.Interagir();
+        var mao = Object.FindFirstObjectByType<MaoPrimeiraPessoa>();
+        typeof(MaoPrimeiraPessoa).GetMethod("AoInteragir", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(mao, new object[] { monte });
+    }
+
+    private static bool? AnimMaoDireita()
+    {
+        var a = Object.FindFirstObjectByType<MaoPrimeiraPessoa>()?.GetComponentInChildren<Animator>();
+        return a != null ? a.GetBool("UseRightHand") : (bool?)null;
+    }
+
+    private static float DistPedra(string pedra, string osso)
+    {
+        var p = GameObject.Find(pedra);
+        var m = Object.FindFirstObjectByType<MaoPrimeiraPessoa>()?.GetComponentsInChildren<Transform>().FirstOrDefault(t => t.name == osso);
+        var r = p != null ? p.GetComponent<Renderer>() : null;
+        return r != null && m != null && p.activeInHierarchy ? Vector3.Distance(r.bounds.center, m.position) : 99f;
+    }
+
+    private static float AlfaBarra()
+    {
+        var b = GameObject.Find("Barra do Carvão");
+        var g = b != null ? b.GetComponent<CanvasGroup>() : null;
+        return g != null ? g.alpha : -1f;
+    }
+
     private static string Usaria()
     {
         var a = PlayerInteractor.Atual;
@@ -226,6 +257,11 @@ public static class IsometricoPlayTest
                     Check(LanternaNaMao.TemLanterna, "pegou a lanterna");
                     Check(GameObject.Find("Barra do Carvão") != null, "barra do carvão na tela");
                 }
+                marca = Time.time; passo = 200; // um instante para a lanterna ir para a mão
+                break;
+            }
+            case 200 when Time.time - marca > 0.6f:
+            {
                 log.AppendLine("== lá fora: primeira pessoa ==");
                 Check(!modo.Isometrico, "começa em primeira pessoa");
                 var raiz = fpc.CinemachineCameraTarget.transform;
@@ -261,8 +297,19 @@ public static class IsometricoPlayTest
                         Check(apagou && luz.ligada, "L apaga e acende");
                     }
                 }
+                {
+                    // braços numa câmera própria, por cima do mundo (não atravessam paredes)
+                    int cfp = LayerMask.NameToLayer(CameraDosBracos.NomeCamada);
+                    var dadosCam = Camera.main.GetUniversalAdditionalCameraData();
+                    var sobre = dadosCam.cameraStack.FirstOrDefault(c => c != null && c.name == "Câmera dos Braços");
+                    Check(sobre != null && sobre.cullingMask == 1 << cfp, "câmera dos braços (overlay) na pilha da câmera principal");
+                    Check((Camera.main.cullingMask & (1 << cfp)) == 0, "a câmera principal não desenha os braços");
+                    var rb = mao != null ? mao.GetComponentInChildren<SkinnedMeshRenderer>(true) : null;
+                    var rl = lant != null ? lant.GetComponentInChildren<Renderer>(true) : null;
+                    Check(rb != null && rb.gameObject.layer == cfp && rl != null && rl.gameObject.layer == cfp, "braços e lanterna na camada dos braços");
+                }
                 Captura("fp_1_fora.png");
-                marca = Time.time; passo++;
+                marca = Time.time; passo = 1;
                 break;
             }
             case 1:
@@ -388,6 +435,7 @@ public static class IsometricoPlayTest
             case 12 when Time.time - marca > 4f:
             {
                 Check(trem.IsInsideTrain, "subiu e o trem anda");
+                Check(AlfaBarra() > 0.9f, $"no trem: barra do carvão aparece ({AlfaBarra():0.00})");
                 // câmera de fora da locomotiva (o mesmo que apertar V)
                 var tc = Object.FindObjectsByType<TrainCameraView>(FindObjectsSortMode.None).FirstOrDefault(c => c.trainCamera != null && c.enabled);
                 if (tc == null) { Check(false, "câmera de fora do trem na cena"); passo = 61; break; }
@@ -437,6 +485,7 @@ public static class IsometricoPlayTest
             case 16 when Time.time - marca > 1.0f:
             {
                 log.AppendLine($"  E usaria: {Usaria()}");
+                Check(AlfaBarra() < 0.1f, $"fora do trem: barra do carvão some ({AlfaBarra():0.00})");
                 Check(PlayerInteractor.Atual is MonteDeCarvao, "mirando o monte: PEGAR CARVÃO");
                 Captura("mundo_1_monte.png");
                 PlayerInteractor.Atual?.Interagir();
@@ -459,6 +508,56 @@ public static class IsometricoPlayTest
                 Check(PlayerInventory.Instance.GetQuantity("carvao") == 0 && largada != null, "Q larga a pedra no chão (mãos livres)");
                 if (largada != null) largada.Interagir();
                 Check(PlayerInventory.Instance.GetQuantity("carvao") == 1, "pegou a pedra de volta");
+                // com a lanterna na direita, só cabe uma pedra
+                Check(CarvaoNaMao.Capacidade == 1, $"com a lanterna na mão, cabe 1 pedra ({CarvaoNaMao.Capacidade})");
+                // H guarda a lanterna: as duas mãos livres para o carvão
+                ArmasDoJogador.Instance.Largar();
+                LanternaNaMao.Guardar(true);
+                Check(LanternaNaMao.Guardada && !LanternaNaMao.MaoDireitaOcupada && LanternaNaMao.TemLanterna, "H guarda a lanterna (continua na mochila)");
+                Check(CarvaoNaMao.Capacidade == 2, $"lanterna guardada: cabem 2 pedras ({CarvaoNaMao.Capacidade})");
+                PegarCarvao(GameObject.Find("Monte de Carvao 1").GetComponent<MonteDeCarvao>());
+                Check(PlayerInventory.Instance.GetQuantity("carvao") == 1 && AnimMaoDireita() == true, "primeira pedra: pega com a mão direita");
+                LanternaNaMao.Guardar(false);
+                Check(LanternaNaMao.Guardada, "com pedra na direita, a lanterna não volta para a mão");
+                marca = Time.time; passo = 31;
+                break;
+            }
+            case 31 when Time.time - marca > 0.8f:
+            {
+                Check(LuzDaLanterna.Instance == null || !LuzDaLanterna.Instance.Luz.enabled, "lanterna guardada: luz apagada");
+                var lr = Object.FindFirstObjectByType<LanternaNaMao>()?.GetComponentInChildren<Renderer>(true);
+                Check(lr != null && !lr.enabled, "lanterna guardada: some da mão");
+                Check(DistPedra("Pedra (direita)", "hand.R") < 0.15f, $"pedra na mão direita ({DistPedra("Pedra (direita)", "hand.R"):0.00} m)");
+                var monte = GameObject.Find("Monte de Carvao 1").GetComponent<MonteDeCarvao>();
+                PegarCarvao(monte);
+                Check(PlayerInventory.Instance.GetQuantity("carvao") == 2 && AnimMaoDireita() == false, "segunda pedra: pega com a mão esquerda");
+                Check(monte.Texto == "MÃOS OCUPADAS", $"com as duas mãos cheias: \"{monte.Texto}\"");
+                monte.Interagir();
+                Check(PlayerInventory.Instance.GetQuantity("carvao") == 2, "não pega a terceira");
+                marca = Time.time; passo = 32;
+                break;
+            }
+            case 32 when Time.time - marca > 0.8f:
+            {
+                float dd = DistPedra("Pedra (direita)", "hand.R"), de = DistPedra("Pedra (esquerda)", "hand.L");
+                Check(dd < 0.15f && de < 0.15f, $"uma pedra em cada mão (direita {dd:0.00} m, esquerda {de:0.00} m)");
+                int cfp = LayerMask.NameToLayer(CameraDosBracos.NomeCamada);
+                var pd = GameObject.Find("Pedra (direita)");
+                Check(pd != null && pd.layer == cfp, "pedras na camada dos braços");
+                Captura("mundo_1c_duas_pedras.png");
+                ArmasDoJogador.Instance.Largar(); ArmasDoJogador.Instance.Largar();
+                Check(PlayerInventory.Instance.GetQuantity("carvao") == 0, "Q duas vezes larga as duas pedras");
+                foreach (var it in Object.FindObjectsByType<ItemColetavel>(FindObjectsSortMode.None).Where(i => i.name == "Carvão largado")) Object.Destroy(it.gameObject);
+                LanternaNaMao.Guardar(false);
+                Check(LanternaNaMao.NaMaoAgora && LanternaNaMao.MaoDireitaOcupada, "H de novo: lanterna volta para a mão");
+                // Q sem carvão nem arma larga a lanterna
+                if (ArmasDoJogador.Instance.Equipada != "") ArmasDoJogador.Instance.Equipar("");
+                ArmasDoJogador.Instance.Largar();
+                var lg = Object.FindObjectsByType<ItemColetavel>(FindObjectsSortMode.None).FirstOrDefault(i => i.name == "Lanterna largada");
+                Check(!LanternaNaMao.TemLanterna && lg != null, "Q larga a lanterna no chão");
+                if (lg != null) lg.Interagir();
+                Check(LanternaNaMao.NaMaoAgora, "pegou a lanterna de volta (na mão)");
+                PegarCarvao(GameObject.Find("Monte de Carvao 1").GetComponent<MonteDeCarvao>());
                 // pilha: acabando, troca sozinho pela da mochila
                 var luz = LuzDaLanterna.Instance;
                 if (luz != null)
@@ -785,6 +884,12 @@ public static class IsometricoPlayTest
             {
                 var armas = ArmasDoJogador.Instance;
                 int antes = armas.NoPente;
+                {
+                    var cm = Camera.main.transform;
+                    log.AppendLine($"  cervo: vida {(alvoTeste != null ? alvoTeste.vida : -1):0}, a {(alvoTeste != null ? Vector3.Distance(cm.position, alvoTeste.Centro) : -1):0.0} m");
+                    foreach (var h in Physics.RaycastAll(cm.position, cm.forward, 60f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance).Take(4))
+                        log.AppendLine($"    raio do tiro: {h.collider.name} ({h.collider.GetType().Name}) a {h.distance:0.0} m");
+                }
                 armas.Atacar();
                 Captura("arma_1_rifle.png");
                 Check(armas.NoPente == antes - 1, "o tiro gasta uma bala");
@@ -793,7 +898,7 @@ public static class IsometricoPlayTest
             }
             case 105 when Time.time - marca > 0.8f:
             {
-                Check(alvoTeste != null && !alvoTeste.Vivo, "um tiro de rifle derruba o cervo");
+                Check(alvoTeste != null && !alvoTeste.Vivo, $"um tiro de rifle derruba o cervo (vida {(alvoTeste != null ? alvoTeste.vida : -1):0})");
                 int sois = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).Count(l => l.isActiveAndEnabled && l.type == LightType.Directional);
                 Check(sois == 1, $"com cervos no mapa, só a lua ilumina tudo ({sois} luz direcional)");
                 var carc = alvoTeste != null ? alvoTeste.GetComponent<Carcaca>() : null;
@@ -823,6 +928,11 @@ public static class IsometricoPlayTest
                 Captura("arma_2_faca.png");
                 Check(alvoTeste != null && alvoTeste.vida < vidaAntes, $"facada acerta o lobo ({vidaAntes:0} → {(alvoTeste != null ? alvoTeste.vida : 0):0})");
                 Check(fpc.staminaAtual < folego, "golpe gasta estamina");
+                var faca = GameObject.Find("Arma na Mão (faca)");
+                Check(faca != null && faca.layer == LayerMask.NameToLayer(CameraDosBracos.NomeCamada), "faca na camada dos braços (não entra na parede)");
+                var mm = ArmasDoJogador.Instance.modeloMachado;
+                var mmf = mm != null ? mm.GetComponentInChildren<MeshFilter>(true) : null;
+                Check(mmf != null && AssetDatabase.GetAssetPath(mmf.sharedMesh).EndsWith("Machado/Machado.obj"), $"machado novo ({(mmf != null ? AssetDatabase.GetAssetPath(mmf.sharedMesh) : "nenhum")})");
                 vidaTeste = PlayerStats.Instance.vida.atual;
                 marca = Time.time; passo = 107;
                 break;
