@@ -73,6 +73,20 @@ public static class SistemasBuilder
         foreach (var a in new[] { faca, machado, rifle }) if (a != null) { a.SetActive(false); EditorUtility.SetDirty(a); }
         ArmasNasEstruturas(faca, machado, rifle);
 
+        // ---------------------------------------------------------------- carvão da locomotiva
+        foreach (var ct in Object.FindObjectsByType<CombustivelTrem>(FindObjectsSortMode.None))
+        {
+            var sc = new SerializedObject(ct);
+            sc.FindProperty("metrosPorCarvao").floatValue = 170f;
+            sc.ApplyModifiedPropertiesWithoutUndo();
+            log.AppendLine("carvão: 170 m por pedra (a viagem pede ~26 pedras; o mapa tem 35)");
+        }
+
+        // ---------------------------------------------------------------- lanterna e pilhas pelas casas
+        var lanternaModelo = Camera.main != null ? Camera.main.transform.Find("Lantern") : null;
+        var pilhaModelo = kit != null ? kit.transform.Find("Battery") : null;
+        Achados(lanternaModelo != null ? lanternaModelo.gameObject : null, pilhaModelo != null ? pilhaModelo.gameObject : null);
+
         // ---------------------------------------------------------------- animais
         Directory.CreateDirectory(PastaAnimais);
         var cervo = PrefabCervo();
@@ -161,6 +175,61 @@ public static class SistemasBuilder
         copia.transform.position += new Vector3(alvo.x - b.center.x, alvo.y - b.min.y + 0.005f, alvo.z - b.center.z);
         string chave = new string(e.name.ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
         MundoBuilder.TornarColetavel(copia, id, 1, $"estrutura.{chave}.arma.{id}", acao, fala);
+        return true;
+    }
+
+    // ================================================================== lanterna e pilhas (achados nas casas)
+
+    private static void Achados(GameObject lanterna, GameObject pilha)
+    {
+        var estruturas = Object.FindObjectsByType<Estrutura>(FindObjectsSortMode.None).OrderBy(e => e.name).ToList();
+        foreach (var e in estruturas)
+            foreach (var velha in e.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("Achado: ")).ToList())
+                if (velha != null) Object.DestroyImmediate(velha.gameObject);
+        int lanternas = 0, pilhas = 0;
+        foreach (var e in estruturas)
+        {
+            bool casa = e.name.StartsWith("Casa") || e.name == "Dom";
+            var rnd = new Random((e.name + "lanterna").Aggregate(11, (h, c) => h * 31 + c));
+            // lanterna: só em casas (de um e de dois andares); garantida na casa do começo
+            if (lanterna != null && casa && (e.name == "Dom" || rnd.NextDouble() < 0.4))
+                if (PorAchado(e, "lanterna", lanterna, "PEGAR LANTERNA", "Uma lanterna! Agora dá pra enxergar alguma coisa. [L] liga.", rnd, 0.22f, "lanterna")) lanternas++;
+            // pilhas: casas e mercadinho
+            if (pilha != null)
+            {
+                int n = e.name == "Mercadinho" ? 3 : e.name == "Dom" ? 1 : rnd.NextDouble() < 0.6 ? 1 + rnd.Next(2) : 0;
+                for (int i = 0; i < n; i++)
+                    if (PorAchado(e, "pilha", pilha, "PEGAR PILHA", i == 0 ? "Pilha. Pra lanterna." : "", rnd, 0.07f, "pilha" + (i + 1))) pilhas++;
+            }
+        }
+        log.AppendLine($"lanternas: {lanternas} (garantida na Dom), pilhas: {pilhas}");
+    }
+
+    private static bool PorAchado(Estrutura e, string id, GameObject modelo, string acao, string fala, Random rnd, float tamanho, string chaveItem)
+    {
+        var itens = e.GetComponentsInChildren<ItemColetavel>(true).Where(i => !i.name.StartsWith("Achado: ")).ToList();
+        if (itens.Count == 0) return false;
+        var ref_ = itens[rnd.Next(itens.Count)];
+        var rb = ref_.GetComponentInChildren<Renderer>().bounds;
+        var copia = Object.Instantiate(modelo, ref_.transform.parent);
+        copia.name = "Achado: " + id;
+        copia.SetActive(true);
+        foreach (var mb in copia.GetComponentsInChildren<MonoBehaviour>(true)) if (mb != null) Object.DestroyImmediate(mb);
+        foreach (var c in copia.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+        foreach (var l in copia.GetComponentsInChildren<Light>(true)) Object.DestroyImmediate(l.gameObject);
+        float ang = (float)rnd.NextDouble() * 360f;
+        copia.transform.rotation = Quaternion.Euler(0f, ang, 0f) * Quaternion.Euler(0f, 0f, 90f);
+        var rs = copia.GetComponentsInChildren<Renderer>();
+        if (rs.Length == 0) { Object.DestroyImmediate(copia); return false; }
+        var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        copia.transform.localScale *= tamanho / Mathf.Max(0.001f, Mathf.Max(b.size.x, b.size.y, b.size.z));
+        b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        // deitada; ao lado de um suprimento
+        Vector3 lado = Quaternion.Euler(0f, ang + 90f, 0f) * Vector3.right;
+        Vector3 alvo = new Vector3(rb.center.x, rb.min.y, rb.center.z) + lado * (Mathf.Max(b.extents.x, b.extents.z) + 0.2f);
+        copia.transform.position += new Vector3(alvo.x - b.center.x, alvo.y - b.min.y + 0.005f, alvo.z - b.center.z);
+        string chave = new string(e.name.ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+        MundoBuilder.TornarColetavel(copia, id, 1, $"estrutura.{chave}.achado.{chaveItem}", acao, fala);
         return true;
     }
 
@@ -336,11 +405,16 @@ public static class SistemasBuilder
                     mt.SetColor("_BaseColor", new Color(0.45f, 0.35f, 0.25f));
                     a.GetComponent<Renderer>().sharedMaterial = mt;
                 }
-                // deitada atravessando os trilhos, a base de um lado
-                a.transform.localRotation = Quaternion.Euler(0f, 0f, 90f) * Quaternion.Euler(0f, rnd.Next(360), 0f);
+                // deitada atravessando os trilhos: a base do tronco fica no chão de um lado e o tronco
+                // passa por cima dos trilhos, encostado neles (a copa cai do outro lado)
+                a.transform.rotation = Quaternion.identity;
                 var rs = a.GetComponentsInChildren<Renderer>(true);
-                var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
-                a.transform.position += new Vector3(pos.x - b.center.x, pos.y + 0.3f - b.min.y, pos.z - b.center.z) + go.transform.right * (b.size.magnitude * 0.12f);
+                var b0 = rs[0].bounds; foreach (var r in rs) b0.Encapsulate(r.bounds);
+                Vector3 baseOff = new Vector3(b0.center.x, b0.min.y, b0.center.z) - a.transform.position;
+                var deitada = Quaternion.FromToRotation(Vector3.up, go.transform.right) * Quaternion.Euler(0f, rnd.Next(360), 0f);
+                Vector3 baseNoChao = pos - go.transform.right * 2.2f + Vector3.up * 0.4f;
+                a.transform.rotation = deitada;
+                a.transform.position = baseNoChao - deitada * baseOff;
                 var bc = go.AddComponent<BoxCollider>();
                 bc.center = new Vector3(0f, 0.9f, 0f); bc.size = new Vector3(7f, 1.8f, 2.2f);
             }
