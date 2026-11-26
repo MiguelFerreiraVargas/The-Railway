@@ -11,7 +11,7 @@ public class CarvaoNaMao : MonoBehaviour
     [SerializeField] private string itemId = "carvao";
     [SerializeField] private Vector3 posicao = new Vector3(-0.17f, -0.12f, 0.42f);
     [SerializeField] private Vector3 rotacao = new Vector3(28f, -42f, -22f);
-    [SerializeField] private Vector3 tamanho = new Vector3(0.085f, 0.065f, 0.075f);
+    [SerializeField] private Vector3 tamanho = new Vector3(0.11f, 0.11f, 0.11f);
     [Header("Nas mãos dos braços")]
     [Tooltip("Animação de onde sai a pose do braço segurando a pedra.")]
     [SerializeField] private string clipeMao = "guard_idle";
@@ -70,7 +70,9 @@ public class CarvaoNaMao : MonoBehaviour
         if (modelo != null) r.sharedMaterial = modelo.sharedMaterial;
         // Na mão fica um pouco mais clara e brilhante que no monte, senão vira só um borrão preto
         var m = new Material(r.sharedMaterial);
-        if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", new Color(0.13f, 0.13f, 0.14f));
+        // (com a textura do carvão escaneado ela já tem o brilho; só o cubo liso precisa clarear)
+        bool comTextura = m.HasProperty("_BaseMap") && m.GetTexture("_BaseMap") != null;
+        if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", comTextura ? new Color(0.75f, 0.75f, 0.77f) : new Color(0.13f, 0.13f, 0.14f));
         if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.6f);
         r.sharedMaterial = m;
         r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

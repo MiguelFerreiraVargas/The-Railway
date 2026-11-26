@@ -487,6 +487,7 @@ public static class PrologoBuilder
         {
             var lump = Box("Monte", monte, o + new Vector3(R(-2.5f, -0.5f), R(0.1f, 0.5f), R(-1.6f, 0.4f)), Vector3.one * R(0.5f, 1.1f), coalMat, collider: false);
             lump.transform.rotation = Quaternion.Euler(R(0, 360), R(0, 360), R(0, 360));
+            AssetsCalebe.VirarCarvao(lump);
         }
         var mc = monte.gameObject.AddComponent<MonteDeCarvao>();
         SetS(mc, "acao", "PEGAR CARVÃO");

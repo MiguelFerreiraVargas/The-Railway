@@ -165,6 +165,7 @@ public static class MundoBuilder
             lump.transform.localPosition = new Vector3(((float)rnd.NextDouble() - 0.5f) * 1.4f, s * 0.35f + (float)rnd.NextDouble() * 0.2f, ((float)rnd.NextDouble() - 0.5f) * 1.4f);
             lump.transform.localRotation = Quaternion.Euler((float)rnd.NextDouble() * 360f, (float)rnd.NextDouble() * 360f, (float)rnd.NextDouble() * 360f);
             if (mat != null) lump.GetComponent<Renderer>().sharedMaterial = mat;
+            AssetsCalebe.VirarCarvao(lump);
         }
         var mc = monte.gameObject.AddComponent<MonteDeCarvao>();
         var so = new SerializedObject(mc);
