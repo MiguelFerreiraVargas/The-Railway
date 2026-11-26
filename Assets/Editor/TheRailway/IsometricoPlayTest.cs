@@ -205,6 +205,20 @@ public static class IsometricoPlayTest
         return r != null && m != null && p.activeInHierarchy ? Vector3.Distance(r.bounds.center, m.position) : 99f;
     }
 
+    // as mãos (pulsos) colados na arma
+    private static bool MaosNaArma(string id, out string detalhe)
+    {
+        var arma = GameObject.Find("Arma na Mão (" + id + ")");
+        var rig = Object.FindFirstObjectByType<MaoPrimeiraPessoa>()?.GetComponentsInChildren<Transform>();
+        if (arma == null || rig == null) { detalhe = "(sem arma ou sem braços)"; return false; }
+        var rs = arma.GetComponentsInChildren<Renderer>();
+        var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        float dE = Mathf.Sqrt(b.SqrDistance(rig.First(t => t.name == "hand.L").position));
+        float dD = Mathf.Sqrt(b.SqrDistance(rig.First(t => t.name == "hand.R").position));
+        detalhe = $"(pulso esquerdo a {dE:0.00} m, direito a {dD:0.00} m)";
+        return dE < 0.1f && (id == "faca" || dD < 0.1f);
+    }
+
     private static float AlfaBarra()
     {
         var b = GameObject.Find("Barra do Carvão");
@@ -852,9 +866,101 @@ public static class IsometricoPlayTest
             {
                 ScreenCapture.CaptureScreenshot(Path.GetFullPath(Path.Combine(Folder, "mochila_tela.png")));
                 log.AppendLine("  captura: mochila_tela.png (tela do jogo)");
-                marca = Time.time; passo = 102;
+                marca = Time.time; passo = 140;
                 break;
             }
+            // ---------------------------------------------------------------- armas nas mãos (poses e golpes)
+            case 140 when Time.time - marca > 0.6f:
+            {
+                TelaMochila.Instance.Mostrar(false);
+                var inv = PlayerInventory.Instance;
+                inv.AddItem("machado", 1); inv.AddItem("municao", 5);
+                if (!LanternaNaMao.NaMaoAgora) LanternaNaMao.Guardar(false);
+                Check(LanternaNaMao.NaMaoAgora, "lanterna na mão antes do machado");
+                Mirar(fpc, fpc.transform.position + fpc.transform.forward * 10f + Vector3.up * 1.2f);
+                ArmasDoJogador.Instance.Equipar("machado");
+                Check(ArmasDoJogador.Instance.Equipada == "machado" && LanternaNaMao.Guardada, "machado: a lanterna vai sozinha para a mochila");
+                Check(CarvaoNaMao.Capacidade == 0, $"machado nas duas mãos: não cabe carvão ({CarvaoNaMao.Capacidade})");
+                marca = Time.time; passo = 141;
+                break;
+            }
+            case 141 when Time.time - marca > 0.8f:
+            {
+                Check(MaosNaArma("machado", out string dm), "machado seguro com as duas mãos " + dm);
+                Captura("arma_0a_machado.png");
+                fpc.staminaAtual = fpc.staminaMax;
+                ArmasDoJogador.Instance.Atacar();
+                marca = Time.time; passo = 142;
+                break;
+            }
+            case 142 when Time.time - marca > 0.12f:
+                Captura("arma_0b_machado_armando.png");
+                marca = Time.time; passo = 143;
+                break;
+            case 143 when Time.time - marca > 0.17f:
+                Captura("arma_0c_machado_golpe.png");
+                marca = Time.time; passo = 144;
+                break;
+            case 144 when Time.time - marca > 0.8f:
+            {
+                ArmasDoJogador.Instance.Equipar("faca");
+                Check(LanternaNaMao.NaMaoAgora, "trocou para a faca: a lanterna volta para a mão");
+                marca = Time.time; passo = 145;
+                break;
+            }
+            case 145 when Time.time - marca > 0.8f:
+            {
+                Check(MaosNaArma("faca", out string dm), "faca no punho esquerdo " + dm);
+                Captura("arma_0d_faca.png");
+                fpc.staminaAtual = fpc.staminaMax;
+                ArmasDoJogador.Instance.Atacar();
+                marca = Time.time; passo = 146;
+                break;
+            }
+            case 146 when Time.time - marca > 0.08f:
+            {
+                Captura("arma_0e_faca_estocada.png");
+                marca = Time.time; passo = 147;
+                break;
+            }
+            case 147 when Time.time - marca > 0.6f:
+            {
+                ArmasDoJogador.Instance.Equipar("rifle");
+                Check(LanternaNaMao.Guardada, "rifle: a lanterna vai para a mochila");
+                marca = Time.time; passo = 148;
+                break;
+            }
+            case 148 when Time.time - marca > 0.8f:
+            {
+                Check(MaosNaArma("rifle", out string dm), "rifle seguro com as duas mãos " + dm);
+                {
+                    var am = GameObject.Find("Arma na Mão (rifle)");
+                    log.AppendLine($"  parado: rifle {(am != null ? Camera.main.transform.InverseTransformDirection(am.transform.forward).ToString("F2") : "-")}");
+                }
+                Captura("arma_0f_rifle.png");
+                ArmasDoJogador.Instance.Atacar();
+                marca = Time.time; passo = 149;
+                break;
+            }
+            case 149 when Time.time - marca > 0.04f:
+            {
+                Captura("arma_0g_rifle_tiro.png");
+                marca = Time.time; passo = 150;
+                break;
+            }
+            case 150 when Time.time - marca > 1.0f:
+                {
+                // com o pente vazio o tiro já começa a recarregar; senão, R
+                if (!ArmasDoJogador.Instance.Recarregando)
+                    typeof(ArmasDoJogador).GetMethod("Recarregar", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(ArmasDoJogador.Instance, null);
+                Check(ArmasDoJogador.Instance.Recarregando, "R recarrega o rifle");
+                Captura("arma_0h_rifle_recarga.png");
+                marca = Time.time; passo = 151;
+                break;
+                }
+            case 151 when Time.time - marca > 1.5f:
+                marca = Time.time; passo = 102;
+                break;
             case 102 when Time.time - marca > 0.6f:
             {
                 TelaMochila.Instance.Mostrar(false);
@@ -881,6 +987,10 @@ public static class IsometricoPlayTest
                 break;
             }
             case 104 when Time.time - marca > 0.4f:
+                if (alvoTeste != null) Mirar(fpc, alvoTeste.Centro); // o cervo pode ter andado
+                marca = Time.time; passo = 1040;
+                break;
+            case 1040 when Time.time - marca > 0.05f:
             {
                 var armas = ArmasDoJogador.Instance;
                 int antes = armas.NoPente;

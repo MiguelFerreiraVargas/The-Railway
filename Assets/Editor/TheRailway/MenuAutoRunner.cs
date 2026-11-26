@@ -76,6 +76,14 @@ public static class MenuAutoRunner
         if (!File.Exists(CommandFile))
             return;
 
+        // "parar" vale mesmo em Play (sai do Play que ficou aberto)
+        if (EditorApplication.isPlaying && File.ReadAllText(CommandFile).Trim().ToLowerInvariant() == "parar")
+        {
+            File.Delete(CommandFile);
+            EditorApplication.ExitPlaymode();
+            return;
+        }
+
         if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
             return;
 
@@ -182,6 +190,21 @@ public static class MenuAutoRunner
         {
             File.Delete(CommandFile);
             PrologoPlayTest.Start();
+            return;
+        }
+
+        if (command == "gifs")
+        {
+            File.Delete(CommandFile);
+            ArmasPlayTest.FazerGifs();
+            WriteStatus(new StringBuilder("gifs refeitos"));
+            return;
+        }
+
+        if (command == "armastest")
+        {
+            File.Delete(CommandFile);
+            ArmasPlayTest.Start();
             return;
         }
 
