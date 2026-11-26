@@ -124,7 +124,7 @@ public static partial class EstruturasBuilder
                 // o andar de cima também tem coisas
                 var e2 = t.GetComponent<Estrutura>();
                 var cima = e2.pisos.FirstOrDefault(c => c != null && c.name == "Piso de Cima A");
-                if (cima != null) Mobiliar(t, pl.tipo, rnd, pl.nome + " Cima", cima, new[] { Colchao, Colchao, Armario, Estante, Caixa, Caixa, Caixa, Cadeira }, 4);
+                if (cima != null) Mobiliar(t, pl.tipo, rnd, pl.nome + " Cima", cima, new[] { Colchao, Colchao, Armario, EstanteVelha, Caixa, Caixote, Caixa, CadeiraVelha }, 4);
             }
             estruturasFeitas.Add(t);
         }
@@ -438,6 +438,7 @@ public static partial class EstruturasBuilder
         public Vector3 frente;        // eixo da frente no espaço do pacote; zero = solto no meio do cômodo
         public bool superficie;       // dá para pôr suprimento em cima
         public bool colchao;
+        public string calebe;         // prefab de Assets/Prefabs/Calebe (modelos da pasta CalebeAssets3D)
         public Movel(string nome, Vector3 frente, bool superficie, params string[] pecas) { this.nome = nome; this.frente = frente; this.superficie = superficie; this.pecas = pecas; }
     }
 
@@ -453,14 +454,21 @@ public static partial class EstruturasBuilder
     private static readonly Movel Lixeira = new Movel("Lixeira", Vector3.forward, false, "tachoBasura", "tapa tacho");
     private static readonly Movel Colchao = new Movel("Colchao", Vector3.right, false) { colchao = true };
     private static readonly Movel Caixa = new Movel("Caixa", Vector3.forward, true);
+    // modelos da pasta CalebeAssets3D
+    private static readonly Movel Sofa = new Movel("Sofa", Vector3.left, false) { calebe = "Sofa" };
+    private static readonly Movel CadeiraVelha = new Movel("Cadeira Velha", Vector3.zero, false) { calebe = "Cadeira Velha" };
+    private static readonly Movel GeladeiraVelha = new Movel("Geladeira Velha", Vector3.left, false) { calebe = "Geladeira Velha" };
+    private static readonly Movel EstanteVelha = new Movel("Estante Velha", Vector3.left, false) { calebe = "Estante Velha" };
+    private static readonly Movel Caixote = new Movel("Caixote", Vector3.zero, true) { calebe = "Caixote" };
+    private static readonly Movel Barril = new Movel("Barril", Vector3.zero, true) { calebe = "Barril" };
 
     private static Movel[] KitDe(Tipo tipo)
     {
         switch (tipo)
         {
-            case Tipo.Casa: return new[] { Geladeira, Armario, Colchao, MesaPequena, Banco, Banco, Caixa, Caixa, Lixeira, Caixa };
-            case Tipo.CasaVelha: return new[] { Mesa, Bancada, Geladeira, Armario, Estante, Estante, Freezer, Colchao, Colchao, Cadeira, Caixa, Caixa, Caixa, Caixa, Lixeira };
-            case Tipo.Mercadinho: return new[] { Caixa, Caixa, Caixa };
+            case Tipo.Casa: return new[] { Geladeira, Armario, Colchao, Sofa, MesaPequena, CadeiraVelha, Banco, Caixa, Caixote, Lixeira, Caixa };
+            case Tipo.CasaVelha: return new[] { Mesa, Bancada, GeladeiraVelha, Armario, EstanteVelha, Estante, Freezer, Sofa, Colchao, Colchao, Cadeira, CadeiraVelha, Caixa, Caixote, Caixa, Barril, Lixeira };
+            case Tipo.Mercadinho: return new[] { Caixa, Caixote, Caixa, Barril };
             default: return new Movel[0];
         }
     }
@@ -534,7 +542,9 @@ public static partial class EstruturasBuilder
 
         int qtd = qtdSuprimentos >= 0 ? qtdSuprimentos : tipo == Tipo.Mercadinho ? 11 : tipo == Tipo.CasaVelha ? 8 : 5;
         int itens = Suprimentos(sup, casa, est, nome, qtd, superficies, pontos, evitar, pisoY, rnd);
-        log.AppendLine($"{nome}: {postos} móveis, {itens} suprimentos");
+        int enfeites = Enfeites(casa, est, tipo == Tipo.Mercadinho ? 3 : tipo == Tipo.CasaVelha ? 6 : 4, superficies, pontos, evitar, pisoY, rnd);
+        int fora = pisoEscolhido == null ? Arredores(casa, tipo, rnd) : 0;
+        log.AppendLine($"{nome}: {postos} móveis, {itens} suprimentos, {enfeites} enfeites, {fora} coisas do lado de fora");
         pisoDaVez = null;
     }
 
@@ -550,6 +560,7 @@ public static partial class EstruturasBuilder
     private static GameObject CriarMovel(Movel m, Transform pai, Random rnd)
     {
         if (m.colchao) return CriarColchao(pai);
+        if (m.calebe != null) return CriarDoCalebe(m.calebe, m.nome, pai);
         var fontes = m.pecas.Length > 0
             ? m.pecas.Select(n => pecasTamboo.TryGetValue(n, out var t) ? t : null).Where(t => t != null && t.GetComponent<MeshFilter>() != null).ToList()
             : new List<Transform>();
@@ -591,6 +602,24 @@ public static partial class EstruturasBuilder
     private static GameObject CriarColchao(Transform pai)
     {
         var raiz = new GameObject("Colchao").transform;
+        var modelo = AssetsCalebe.Prefab("Colchao");
+        if (modelo != null)
+        {
+            // colchão velho (modelo da pasta CalebeAssets3D) com a manta por cima
+            var c = (GameObject)PrefabUtility.InstantiatePrefab(modelo, raiz);
+            PrefabUtility.UnpackPrefabInstance(c, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            var cb = AssetsCalebe.Limites(c);
+            if (pecasTamboo.TryGetValue("mantaXD", out var mantaC))
+            {
+                var mt = CopiaDe(mantaC, raiz);
+                mt.transform.localPosition += new Vector3(0.25f, cb.max.y + 0.02f, 0f) - raiz.InverseTransformPoint(mt.GetComponent<Renderer>().bounds.center);
+                mt.transform.localScale *= 1.3f;
+            }
+            var bcc = raiz.gameObject.AddComponent<BoxCollider>();
+            bcc.center = new Vector3(cb.center.x, cb.size.y / 2f + 0.05f, cb.center.z); bcc.size = cb.size + new Vector3(0f, 0.1f, 0f);
+            raiz.SetParent(pai, true);
+            return raiz.gameObject;
+        }
         var col = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Object.DestroyImmediate(col.GetComponent<Collider>());
         col.name = "Espuma";
@@ -616,6 +645,129 @@ public static partial class EstruturasBuilder
         raiz.SetParent(pai, true);
         return raiz.gameObject;
     }
+
+    // móvel feito de um prefab da pasta CalebeAssets3D (já vem com o pivô no chão)
+    private static GameObject CriarDoCalebe(string prefab, string nome, Transform pai)
+    {
+        var modelo = AssetsCalebe.Prefab(prefab);
+        if (modelo == null) { log.AppendLine($"AVISO: prefab {prefab} não achado"); return null; }
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(modelo, pai);
+        PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+        go.name = nome;
+        var b = AssetsCalebe.Limites(go);
+        var bc = go.AddComponent<BoxCollider>();
+        bc.center = go.transform.InverseTransformPoint(b.center);
+        bc.size = b.size;
+        return go;
+    }
+
+    // ================================================================== enfeites e tralha (modelos da pasta CalebeAssets3D)
+
+    private static readonly string[] EnfeitesEmCima = { "Vaso", "Garrafas", "Martelo", "Pe de Cabra", "Lanterna Velha", "Disquete", "Mascara de Gas", "Cadeado" };
+    private static readonly string[] EnfeitesNoChao = { "Garrafas", "Saco de Lixo", "Papelao", "Pe de Cabra", "Vaso" };
+
+    /// <summary>Coisas soltas pela casa só para enfeitar (não dá para pegar): em cima dos móveis ou no chão.</summary>
+    private static int Enfeites(Transform casa, Estrutura est, int qtd, List<Lugar> superficies, List<Vector3> pontosChao, List<(Vector3 p, float r)> evitar, float pisoY, Random rnd)
+    {
+        var pai = casa.Find("Enfeites");
+        if (pai == null) { pai = new GameObject("Enfeites").transform; pai.SetParent(casa, false); }
+        int feitos = 0;
+        for (int i = 0; i < qtd * 4 && feitos < qtd; i++)
+        {
+            bool emCima = superficies.Count > 0 && rnd.Next(3) > 0;
+            var lista = emCima ? EnfeitesEmCima : EnfeitesNoChao;
+            var modelo = AssetsCalebe.Prefab(lista[rnd.Next(lista.Length)]);
+            if (modelo == null) continue;
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(modelo, pai);
+            PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            bool posto = false;
+            for (int tent = 0; tent < 10 && !posto; tent++)
+            {
+                Vector3 alvo; float y;
+                if (emCima)
+                {
+                    var l = superficies[rnd.Next(superficies.Count)];
+                    var off = new Vector3(((float)rnd.NextDouble() * 2f - 1f) * Mathf.Max(0f, l.meia.x - 0.15f), 0f, ((float)rnd.NextDouble() * 2f - 1f) * Mathf.Max(0f, l.meia.y - 0.15f));
+                    alvo = l.centro + l.rot * off; y = l.topo + 0.003f;
+                }
+                else if (pontosChao.Count > 0)
+                {
+                    alvo = pontosChao[rnd.Next(pontosChao.Count)]; y = pisoY + 0.003f;
+                    if (evitar.Any(e => NoChao(e.p - alvo).magnitude < e.r)) continue;
+                }
+                else break;
+                AssentarEm(go.transform, new Vector3(alvo.x, y, alvo.z), rnd.Next(360));
+                var b = AssetsCalebe.Limites(go);
+                if (!Livre(b.center + Vector3.up * 0.01f, b.extents * 0.9f + new Vector3(0f, 0.001f, 0f), Quaternion.identity, casa, go.transform)) continue;
+                if (est != null && !DentroDe(casa, est, new Vector3(b.center.x, pisoDaVez != null ? pisoDaVez.bounds.max.y : est.pisos[0].bounds.max.y, b.center.z))) continue;
+                posto = true;
+            }
+            if (!posto) { Object.DestroyImmediate(go); continue; }
+            if (!emCima) evitar.Add((go.transform.position, 0.3f));
+            feitos++;
+        }
+        return feitos;
+    }
+
+    /// <summary>Tralha encostada do lado de fora: barril, sacos de lixo, papelão, ar-condicionado, caçamba no mercadinho.</summary>
+    private static int Arredores(Transform casa, Tipo tipo, Random rnd)
+    {
+        if (tipo == Tipo.Vagao || terreno == null) return 0;
+        var velho = casa.Find("Do Lado de Fora");
+        if (velho != null) Object.DestroyImmediate(velho.gameObject);
+        var pai = new GameObject("Do Lado de Fora").transform; pai.SetParent(casa, true);
+        var lista = new List<string> { "Barril", "Saco de Lixo", "Saco de Lixo", "Papelao", "Ar Condicionado", "Caixote" };
+        if (tipo == Tipo.Mercadinho) lista.AddRange(new[] { "Cacamba", "Saco de Lixo", "Barril" });
+        if (rnd.Next(2) == 0) lista.Remove("Caixote");
+        var b = BoundsDe(casa);
+        var en = casa.Find("Entrada");
+        int feitos = 0;
+        foreach (var nomePeca in lista)
+        {
+            var modelo = AssetsCalebe.Prefab(nomePeca);
+            if (modelo == null) continue;
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(modelo, pai);
+            PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            bool grande = nomePeca == "Cacamba" || nomePeca == "Barril" || nomePeca == "Ar Condicionado" || nomePeca == "Caixote";
+            bool posto = false;
+            for (int tent = 0; tent < 40 && !posto; tent++)
+            {
+                // num ponto da borda da casa, um pouco para fora
+                float ang = (float)rnd.NextDouble() * Mathf.PI * 2f;
+                var dir = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang));
+                float t = 1f / Mathf.Max(Mathf.Abs(dir.x) / Mathf.Max(0.1f, b.extents.x), Mathf.Abs(dir.z) / Mathf.Max(0.1f, b.extents.z));
+                var q = b.center + dir * (t + 0.5f + (float)rnd.NextDouble() * 1.2f);
+                if (en != null && NoChao(q - en.position).magnitude < 2.2f) continue;
+                q.y = Altura(q);
+                go.transform.rotation = Quaternion.Euler(0f, rnd.Next(360), 0f);
+                AssentarEm(go.transform, q, 0f);
+                var gb = AssetsCalebe.Limites(go);
+                if (Mathf.Abs(Altura(gb.min) - Altura(gb.max)) > 0.35f) continue; // chão muito torto
+                if (!Livre(gb.center + Vector3.up * 0.05f, gb.extents * 0.95f, Quaternion.identity, casa, go.transform)) continue;
+                go.transform.position += Vector3.down * 0.03f; // assenta na terra
+                posto = true;
+            }
+            if (!posto) { Object.DestroyImmediate(go); continue; }
+            if (grande)
+            {
+                var mfs = go.GetComponentsInChildren<MeshFilter>();
+                var lb = new Bounds(go.transform.InverseTransformPoint(mfs[0].transform.TransformPoint(mfs[0].sharedMesh.bounds.center)), Vector3.zero);
+                foreach (var mf in mfs)
+                {
+                    var mb = mf.sharedMesh.bounds;
+                    for (int k = 0; k < 8; k++)
+                        lb.Encapsulate(go.transform.InverseTransformPoint(mf.transform.TransformPoint(mb.center + Vector3.Scale(mb.extents, new Vector3((k & 1) == 0 ? -1 : 1, (k & 2) == 0 ? -1 : 1, (k & 4) == 0 ? -1 : 1)))));
+                }
+                var bc = go.AddComponent<BoxCollider>();
+                bc.center = lb.center; bc.size = lb.size * 0.95f;
+            }
+            Physics.SyncTransforms();
+            feitos++;
+        }
+        return feitos;
+    }
+
+    // ================================================================== posicionar móvel
 
     private static bool ColocarMovel(GameObject go, Movel m, Transform casa, List<Vector3> pontos, List<(Vector3 p, float r)> evitar, float pisoY, Random rnd, out Lugar lugar)
     {

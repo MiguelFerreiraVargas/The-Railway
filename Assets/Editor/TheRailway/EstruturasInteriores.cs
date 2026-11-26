@@ -392,9 +392,12 @@ public static partial class EstruturasBuilder
         switch (nomeMovel)
         {
             case "Geladeira":
+            case "Geladeira Velha":
             case "Freezer": FazerRecipiente(movel, Recipiente.Tipo.Geladeira, chave, $"movel{indice}", 0, 2); break;
             case "Armario":
+            case "Estante Velha":
             case "Estante": FazerRecipiente(movel, Recipiente.Tipo.Armario, chave, $"movel{indice}", 0, 2); break;
+            case "Caixote":
             case "Caixa": if (rnd.Next(2) == 0) FazerRecipiente(movel, Recipiente.Tipo.Armario, chave, $"movel{indice}", 0, 1); break;
         }
     }
