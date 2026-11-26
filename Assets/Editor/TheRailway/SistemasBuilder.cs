@@ -62,7 +62,8 @@ public static class SistemasBuilder
         Pegar<EfeitosDeEstado>(sistemas);
 
         // ---------------------------------------------------------------- armas
-        GameObject faca = kit != null ? kit.transform.Find("knife")?.gameObject : null;
+        // faca nova (modelada aqui: a do kit era uma figura chapada com borda preta)
+        GameObject faca = FacaNova();
         // machado novo (modelo trazido de fora); sem ele, o do kit
         GameObject machado = MachadoNovo();
         if (machado == null && kit != null && kit.transform.Find("Axe") != null) machado = kit.transform.Find("Axe").gameObject;
@@ -72,7 +73,8 @@ public static class SistemasBuilder
         EditorUtility.SetDirty(armas);
         Pegar<Desmaio>(jogador);
         // as armas do kit saem de vista: armas são achados raros
-        foreach (var a in new[] { faca, machado, rifle }) if (a != null && a.scene.IsValid()) { a.SetActive(false); EditorUtility.SetDirty(a); }
+        var facaVelha = kit != null && kit.transform.Find("knife") != null ? kit.transform.Find("knife").gameObject : null;
+        foreach (var a in new[] { faca, machado, rifle, facaVelha }) if (a != null && a.scene.IsValid()) { a.SetActive(false); EditorUtility.SetDirty(a); }
         ArmasNasEstruturas(faca, machado, rifle);
 
         // ---------------------------------------------------------------- carvão da locomotiva
@@ -240,6 +242,143 @@ public static class SistemasBuilder
         string chave = new string(e.name.ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
         MundoBuilder.TornarColetavel(copia, id, 1, $"estrutura.{chave}.achado.{chaveItem}", acao, fala);
         return true;
+    }
+
+    // ================================================================== faca nova (modelada aqui)
+
+    private const string PastaFaca = "Assets/Models/Faca";
+
+    // faca de caça de 26 cm, deitada (lâmina no +X, gume no -Z, espessura no Y)
+    private static GameObject FacaNova()
+    {
+        Directory.CreateDirectory(PastaFaca);
+        var aco = MaterialFaca("Faca_Aco", new Color(0.82f, 0.84f, 0.86f), 0.55f, 0.7f); // metal demais fica preto à noite
+        var escuro = MaterialFaca("Faca_Guarda", new Color(0.16f, 0.15f, 0.14f), 0.85f, 0.55f);
+        var madeira = MaterialFaca("Faca_Cabo", new Color(0.45f, 0.27f, 0.14f), 0f, 0.35f);
+
+        var raiz = new GameObject("Faca");
+        Peca(raiz, "Lamina", MalhaLamina(), aco);
+        Peca(raiz, "Guarda", Caixa(new Vector3(0.004f, 0f, -0.003f), new Vector3(0.008f, 0.014f, 0.044f)), escuro);
+        Peca(raiz, "Cabo", MalhaCabo(), madeira);
+        Peca(raiz, "Pomo", Caixa(new Vector3(-0.114f, 0f, 0f), new Vector3(0.01f, 0.02f, 0.03f)), escuro);
+        // deitada no chão: a parte de baixo na origem
+        foreach (Transform f in raiz.transform) f.localPosition = new Vector3(0f, 0.012f, 0f);
+        var prefab = PrefabUtility.SaveAsPrefabAsset(raiz, PastaFaca + "/Faca.prefab");
+        Object.DestroyImmediate(raiz);
+        log.AppendLine("faca nova: lâmina de aço, guarda e cabo de madeira (26 cm)");
+        return prefab;
+    }
+
+    private static Material MaterialFaca(string nome, Color cor, float metal, float liso)
+    {
+        string caminho = PastaFaca + "/" + nome + ".mat";
+        var m = AssetDatabase.LoadAssetAtPath<Material>(caminho);
+        if (m == null) { m = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(m, caminho); }
+        m.SetColor("_BaseColor", cor); m.SetFloat("_Metallic", metal); m.SetFloat("_Smoothness", liso);
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
+    private static void Peca(GameObject raiz, string nome, Mesh malha, Material mat)
+    {
+        string caminho = PastaFaca + "/" + nome + ".asset";
+        var velha = AssetDatabase.LoadAssetAtPath<Mesh>(caminho);
+        if (velha != null) { velha.Clear(); EditorUtility.CopySerialized(malha, velha); malha = velha; }
+        else AssetDatabase.CreateAsset(malha, caminho);
+        var go = new GameObject(nome);
+        go.transform.SetParent(raiz.transform, false);
+        go.AddComponent<MeshFilter>().sharedMesh = malha;
+        go.AddComponent<MeshRenderer>().sharedMaterial = mat;
+    }
+
+    // lâmina em cunha: lombo grosso em cima (+Z), fio no gume (-Z), ponta subindo para o lombo
+    private static Mesh MalhaLamina()
+    {
+        const int n = 24; const float x0 = 0.008f, comp = 0.142f;
+        var v = new List<Vector3>(); var tris = new List<int>();
+        Vector3 Lombo(float t, float lado) { float zs = t < 0.68f ? 0.011f : 0.011f - 0.013f * Mathf.Pow((t - 0.68f) / 0.32f, 1.6f); float h = 0.0021f * (1f - Mathf.Pow(t, 6f)); return new Vector3(x0 + comp * t, h * lado, zs); }
+        Vector3 Fio(float t) { float ze = -0.017f + 0.015f * Mathf.Pow(t, 2.6f); return new Vector3(x0 + comp * t, 0f, ze); }
+        // três faces (de cima, de baixo e o lombo), cada uma com seus vértices (arestas vivas)
+        void Faixa(System.Func<float, Vector3> a, System.Func<float, Vector3> b)
+        {
+            int i0 = v.Count;
+            for (int i = 0; i <= n; i++) { float t = i / (float)n; v.Add(a(t)); v.Add(b(t)); }
+            for (int i = 0; i < n; i++)
+            {
+                int k = i0 + i * 2;
+                tris.AddRange(new[] { k, k + 2, k + 1, k + 1, k + 2, k + 3 });
+            }
+        }
+        Faixa(t => Lombo(t, 1f), Fio);            // de cima
+        Faixa(Fio, t => Lombo(t, -1f));           // de baixo
+        Faixa(t => Lombo(t, -1f), t => Lombo(t, 1f)); // lombo
+        // fecha a base da lâmina (encostada na guarda)
+        int b0 = v.Count;
+        v.Add(Lombo(0f, 1f)); v.Add(Lombo(0f, -1f)); v.Add(Fio(0f));
+        tris.AddRange(new[] { b0, b0 + 2, b0 + 1 });
+        var m = new Mesh { name = "Lamina" };
+        m.SetVertices(v); m.SetTriangles(tris, 0);
+        Consertar(m);
+        return m;
+    }
+
+    // cabo: prisma de 10 lados, oval, mais gordo no meio
+    private static Mesh MalhaCabo()
+    {
+        const int lados = 10, aneis = 9; const float x0 = -0.11f, x1 = 0f;
+        var v = new List<Vector3>(); var tris = new List<int>();
+        for (int a = 0; a <= aneis; a++)
+        {
+            float t = a / (float)aneis;
+            float bojo = 1f + 0.14f * Mathf.Sin(t * Mathf.PI) + (t < 0.12f ? 0.12f * (1f - t / 0.12f) : 0f);
+            for (int l = 0; l < lados; l++)
+            {
+                float ang = l * Mathf.PI * 2f / lados;
+                v.Add(new Vector3(Mathf.Lerp(x0, x1, t), Mathf.Sin(ang) * 0.0095f * bojo, Mathf.Cos(ang) * 0.0125f * bojo));
+            }
+        }
+        for (int a = 0; a < aneis; a++)
+            for (int l = 0; l < lados; l++)
+            {
+                int i = a * lados + l, j = a * lados + (l + 1) % lados;
+                tris.AddRange(new[] { i, j, i + lados, j, j + lados, i + lados });
+            }
+        int c0 = v.Count; v.Add(new Vector3(x0, 0f, 0f));
+        for (int l = 0; l < lados; l++) tris.AddRange(new[] { c0, (l + 1) % lados, l });
+        var m = new Mesh { name = "Cabo" };
+        m.SetVertices(v); m.SetTriangles(tris, 0);
+        Consertar(m);
+        return m;
+    }
+
+    private static Mesh Caixa(Vector3 centro, Vector3 tam)
+    {
+        var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        var m = Object.Instantiate(tmp.GetComponent<MeshFilter>().sharedMesh);
+        Object.DestroyImmediate(tmp);
+        var vs = m.vertices;
+        for (int i = 0; i < vs.Length; i++) vs[i] = centro + Vector3.Scale(vs[i], tam);
+        m.vertices = vs;
+        m.RecalculateBounds();
+        return m;
+    }
+
+    // vira as faces para fora (pelo centro da peça) e calcula normais
+    private static void Consertar(Mesh m)
+    {
+        m.RecalculateBounds();
+        var vs = m.vertices; var t = m.triangles; var c = m.bounds.center;
+        for (int i = 0; i < t.Length; i += 3)
+        {
+            Vector3 a = vs[t[i]], b = vs[t[i + 1]], d = vs[t[i + 2]];
+            Vector3 nrm = Vector3.Cross(b - a, d - a);
+            Vector3 meio = (a + b + d) / 3f;
+            Vector3 fora = meio - c; fora.x *= 0.05f; // a peça é comprida em X: "fora" é mais para longe do eixo
+            if (Vector3.Dot(nrm, fora) < 0f) { int k = t[i + 1]; t[i + 1] = t[i + 2]; t[i + 2] = k; }
+        }
+        m.triangles = t;
+        m.RecalculateNormals();
+        m.RecalculateTangents();
     }
 
     // ================================================================== machado novo
