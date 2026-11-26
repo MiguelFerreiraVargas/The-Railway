@@ -58,7 +58,9 @@ public class TelaMochila : MonoBehaviour
     {
         bool bloqueado = PauseMenu.IsPaused || Leitura.Aberta || MapaDoMundo.Aberto || (PlayerStats.Instance != null && PlayerStats.Instance.Morto);
         var kb = Keyboard.current;
-        if (kb != null && !bloqueado && (kb[tecla].wasPressedThisFrame || kb[teclaAlternativa].wasPressedThisFrame)) Mostrar(!Aberta);
+        // o Tab é da roda de armas quando ela existe (toque: mochila; segurar: armas)
+        bool tab = kb != null && kb[tecla].wasPressedThisFrame && RodaDeArmas.Instance == null;
+        if (kb != null && !bloqueado && (tab || kb[teclaAlternativa].wasPressedThisFrame)) Mostrar(!Aberta);
         else if (Aberta && (bloqueado || (kb != null && kb.escapeKey.wasPressedThisFrame))) Mostrar(false);
 
         grupo.alpha = Mathf.MoveTowards(grupo.alpha, Aberta ? 1f : 0f, Time.unscaledDeltaTime * 8f);
