@@ -43,11 +43,11 @@ public class CarvaoNaMao : MonoBehaviour
 
     // ------------------------------------------------------------ mãos
 
-    private static int Quantidade => PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity("carvao") : 0;
+    public static int Quantidade => PlayerInventory.Instance != null ? PlayerInventory.Instance.GetQuantity("carvao") : 0;
     private static bool TemBracos => instancia != null && instancia.poseE != null;
 
     /// <summary>A direita pode segurar carvão (tem braços e a lanterna não está nela).</summary>
-    public static bool DireitaLivre => TemBracos && !LanternaNaMao.MaoDireitaOcupada;
+    public static bool DireitaLivre => TemBracos && !LanternaNaMao.MaoDireitaOcupada && !ArmasDoJogador.DuasMaosOcupadas;
     /// <summary>A esquerda pode segurar carvão (sem arma de mão equipada).</summary>
     public static bool EsquerdaLivre => ArmasDoJogador.Instance == null || ArmasDoJogador.Instance.Equipada == "";
 

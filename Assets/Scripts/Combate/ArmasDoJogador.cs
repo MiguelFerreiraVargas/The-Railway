@@ -42,6 +42,7 @@ public class ArmasDoJogador : MonoBehaviour
     /// <summary>Id da arma na mão ("" = mãos).</summary>
     public string Equipada { get; private set; } = "";
     public int NoPente { get; private set; }
+    private bool guardouLanterna;
     public bool Recarregando => Time.time < fimRecarga;
 
     private struct Dados { public float dano, alcance, estamina, intervalo; public bool tiro; public string nome; }
@@ -52,6 +53,13 @@ public class ArmasDoJogador : MonoBehaviour
         { "machado", new Dados { nome = "MACHADO", dano = 42f, alcance = 2.2f, estamina = 18f, intervalo = 0.95f } },
         { "rifle",   new Dados { nome = "RIFLE",  dano = 75f, alcance = 120f, estamina = 0f,  intervalo = 1.1f, tiro = true } },
     };
+
+    /// <summary>Números de uma arma (para a roda de armas).</summary>
+    public static (float dano, float alcance, float intervalo, float estamina, bool tiro) Ficha(string id)
+    {
+        var d = Armas.TryGetValue(id ?? "", out var x) ? x : Armas[""];
+        return (d.dano, d.alcance, d.intervalo, d.estamina, d.tiro);
+    }
 
     // combate (para a sanidade)
     private static float ultimoCombate = -999f;
@@ -72,10 +80,8 @@ public class ArmasDoJogador : MonoBehaviour
     private Camera cam;
     private FirstPersonController fpc;
     private Animator animBracos;
-    private PoseDoBraco poseEsquerda;
     private GameObject naMao;          // modelo da arma em primeira pessoa
     private string modeloDe = null;
-    private Vector3 posNaMao; private Quaternion rotNaMao;
     private float recuo;
     private Light clarao;
     private LineRenderer rastro;
@@ -96,13 +102,14 @@ public class ArmasDoJogador : MonoBehaviour
         somClique = SomRuido("clique", 0.03f, 120f, 0.3f, 0f);
         CriarEfeitos();
         MontarHud();
+        RodaDeArmas.Criar(this, fonte);
     }
 
     private void OnDestroy() { if (Instance == this) Instance = null; }
 
     private bool Bloqueado()
     {
-        return PauseMenu.IsPaused || Leitura.Aberta || MapaDoMundo.Aberto || TelaMochila.Aberta || Desmaio.Ativo
+        return PauseMenu.IsPaused || Leitura.Aberta || MapaDoMundo.Aberto || TelaMochila.Aberta || Desmaio.Ativo || RodaDeArmas.Aberta
             || TremInteragivel.ComJogador != null || TrainCameraView.Ativa
             || (PlayerStats.Instance != null && PlayerStats.Instance.Morto);
     }
@@ -149,8 +156,12 @@ public class ArmasDoJogador : MonoBehaviour
     {
         id = id ?? "";
         if (id != "" && CarvaoNaMao.NaEsquerda) { Narrador.Falar("A mão esquerda tá com o carvão. [Q] larga."); return; }
+        if (DuasMaos(id) && CarvaoNaMao.Quantidade > 0) { Narrador.Falar("Preciso das duas mãos. [Q] larga o carvão."); return; }
         if (id != "" && !Armas.ContainsKey(id)) return;
         Equipada = id;
+        // machado e rifle vão com as duas mãos: a lanterna vai para a mochila e volta depois
+        if (DuasMaos(id) && LanternaNaMao.NaMaoAgora) { LanternaNaMao.Guardar(true); guardouLanterna = true; }
+        else if (!DuasMaos(id) && guardouLanterna) { guardouLanterna = false; if (LanternaNaMao.Guardada) LanternaNaMao.Guardar(false); }
         fimRecarga = -1f;
         if (som != null) som.PlayOneShot(somClique, 0.5f);
     }
@@ -373,40 +384,155 @@ public class ArmasDoJogador : MonoBehaviour
     }
 
     // ------------------------------------------------------------ visual em primeira pessoa
+    //
+    // Os braços do rig não têm animação de arma: a arma é posta e animada por código (pose de
+    // descanso, golpe, recuo, recarga, sacar) e as mãos agarram o cabo por IK (MaoNoCabo).
+    // Machado e rifle: as duas mãos (a lanterna vai para a mochila). Faca: só a esquerda.
+
+    /// <summary>Machado e rifle pedem as duas mãos.</summary>
+    public static bool DuasMaos(string id) => id == "machado" || id == "rifle";
+    public static bool DuasMaosOcupadas => Instance != null && DuasMaos(Instance.Equipada);
+
+    private struct PoseArma
+    {
+        public Vector3 pos;    // no espaço da câmera
+        public Quaternion rot; // leva (eixo, cima) da arma para a câmera
+        public PoseArma(Vector3 pos, Vector3 eixo, Vector3 cima) { this.pos = pos; rot = Quaternion.LookRotation(eixo.normalized, cima.normalized); }
+        // giro inteiro interpolado (sem misturar eixo e gume à parte, que dava voltas estranhas)
+        public static PoseArma Lerp(PoseArma a, PoseArma b, float t) =>
+            new PoseArma { pos = Vector3.LerpUnclamped(a.pos, b.pos, t), rot = Quaternion.Slerp(a.rot, b.rot, t) };
+    }
+
+    private GeometriaDaArma geo;
+    private MaoNoCabo maoE, maoD;
+    private Vector3 pivo, pegaE, pegaD;   // no espaço da arma
+    private float raioE = 0.017f, raioD = 0.017f; // grossura do cabo onde cada mão pega (m)
+    private float inicioSacar, inicioGolpe = -99f, passada;
+    private CharacterController corpoCC;
+
+    private static float Suave(float t) { t = Mathf.Clamp01(t); return t * t * (3f - 2f * t); }
+    private static float Sai(float t) { t = Mathf.Clamp01(t); return 1f - (1f - t) * (1f - t); }
+    private static float Entra(float t) { t = Mathf.Clamp01(t); return t * t; }
 
     private void LateUpdate()
     {
         bool iso = ModoCamera.Instance != null && ModoCamera.Instance.Isometrico;
         bool mostrar = !iso && Equipada != "" && !MaosOcupadas && !TrainCameraView.Ativa && TremInteragivel.ComJogador == null;
-        if (modeloDe != Equipada || lanternaDoModelo != LanternaNaMao.NaMaoAgora) TrocarModelo();
+        if (modeloDe != Equipada) TrocarModelo();
         if (naMao != null) naMao.SetActive(mostrar);
-
-        if (mostrar && naMao != null && cam != null)
-        {
-            if (Equipada == "rifle")
-            {
-                // rifle na altura do quadril, apontando para a frente; recua no tiro
-                recuo = Mathf.MoveTowards(recuo, 0f, Time.deltaTime * 6f);
-                float r = Recarregando ? 0.12f : 0f;
-                naMao.transform.SetPositionAndRotation(cam.transform.TransformPoint(posNaMao + new Vector3(0f, -r, -0.08f * recuo)),
-                    cam.transform.rotation * Quaternion.Euler(-8f * recuo + 25f * r, 0f, 0f) * rotNaMao);
-            }
-            else if (poseEsquerda != null)
-            {
-                // braço esquerdo segurando; no golpe o Animator mostra o soco
-                float peso = Time.time < fimGolpe ? 0f : 1f;
-                poseEsquerda.Aplicar(peso);
-                naMao.transform.SetPositionAndRotation(poseEsquerda.Mao.TransformPoint(posNaMao), poseEsquerda.Mao.rotation * rotNaMao);
-            }
-        }
+        if (mostrar && naMao != null && cam != null && geo != null) Animar();
 
         if (clarao != null && clarao.enabled && Time.time > fimClarao) clarao.enabled = false;
         if (rastro != null && rastro.enabled && Time.time > fimRastro) rastro.enabled = false;
     }
 
+    private PoseArma PoseDaArma()
+    {
+        float t = Time.time - inicioGolpe;
+        if (Equipada == "machado")
+        {
+            // descanso: cabo na diagonal, cabeça em cima à direita, gume de lado (a lâmina aparece)
+            // descanso (a pose escolhida): quase em pé no meio, mão esquerda embaixo, direita no meio do cabo
+            var descanso = new PoseArma(new Vector3(0.065f, -0.1f, 0.48f), new Vector3(0.3f, 0.9f, 0.22f), new Vector3(-0.85f, 0.05f, 0.5f));
+            // armado: machado erguido alto, na frente e à direita (as mãos não chegam perto do rosto)
+            var armado = new PoseArma(new Vector3(0.18f, 0.02f, 0.47f), new Vector3(0.25f, 0.85f, -0.45f), new Vector3(-0.2f, 0.45f, 0.85f));
+            // golpe na diagonal: do ombro direito para baixo à esquerda, a lâmina à mostra
+            var golpe = new PoseArma(new Vector3(-0.06f, -0.07f, 0.45f), new Vector3(-0.75f, -0.15f, 0.65f), new Vector3(-0.55f, -0.8f, 0.2f));
+            if (t < 0.16f) return PoseArma.Lerp(descanso, armado, Sai(t / 0.16f));
+            if (t < 0.3f) return PoseArma.Lerp(armado, golpe, Entra((t - 0.16f) / 0.14f));
+            if (t < 0.42f) return golpe;
+            if (t < 0.85f) return PoseArma.Lerp(golpe, descanso, Suave((t - 0.42f) / 0.43f));
+            return descanso;
+        }
+        if (Equipada == "faca")
+        {
+            // lâmina para cima e para dentro (aparece inteira); a estocada vai para a frente sem esconder a lâmina
+            var descanso = new PoseArma(new Vector3(-0.12f, -0.13f, 0.42f), new Vector3(0.25f, 0.55f, 0.8f), new Vector3(-0.3f, -1f, 0.2f));
+            // a estocada vai para a frente com a lâmina ainda inclinada (não some apontando para longe)
+            var estocada = new PoseArma(new Vector3(-0.05f, -0.08f, 0.55f), new Vector3(0.45f, 0.55f, 0.7f), new Vector3(-0.3f, -1f, 0.1f));
+            if (t < 0.09f) return PoseArma.Lerp(descanso, estocada, Sai(t / 0.09f));
+            if (t < 0.15f) return estocada;
+            if (t < 0.4f) return PoseArma.Lerp(estocada, descanso, Suave((t - 0.15f) / 0.25f));
+            return descanso;
+        }
+        // rifle: na altura do peito, coronha no ombro direito
+        // um pouco à direita e girado: aparece o lado do rifle e as duas mãos
+        var pronto = new PoseArma(new Vector3(0.11f, -0.075f, 0.5f), new Vector3(-0.08f, 0.04f, 1f), new Vector3(-0.25f, 1f, 0f));
+        recuo = Mathf.MoveTowards(recuo, 0f, Time.deltaTime * 4f);
+        if (recuo > 0f)
+        {
+            float r = recuo * recuo;
+            pronto.pos += new Vector3(0f, 0.02f, -0.07f) * r;
+            pronto.rot = Quaternion.AngleAxis(-9f * r, Vector3.right) * pronto.rot;
+        }
+        if (Recarregando)
+        {
+            // abaixa e deita o rifle para o lado enquanto a mão esquerda mexe no ferrolho
+            float tr = tempoRecarga - (fimRecarga - Time.time);
+            float peso = Suave(tr / 0.3f) * (1f - Suave((tr - (tempoRecarga - 0.35f)) / 0.35f));
+            var deitado = new PoseArma(new Vector3(0.06f, -0.08f, 0.43f), new Vector3(-0.25f, 0.25f, 1f), new Vector3(-0.9f, 0.4f, 0f));
+            return PoseArma.Lerp(pronto, deitado, peso);
+        }
+        return pronto;
+    }
+
+    private void Animar()
+    {
+        var c = cam.transform;
+        var pose = PoseDaArma();
+
+        // sacar: sobe de baixo
+        float s = Sai((Time.time - inicioSacar) / 0.4f);
+        pose.pos += new Vector3(0f, -0.3f, -0.05f) * (1f - s);
+        pose.rot = Quaternion.Slerp(Quaternion.AngleAxis(40f, Vector3.right) * pose.rot, pose.rot, s);
+
+        // respira e balança ao andar
+        if (corpoCC == null) corpoCC = GetComponent<CharacterController>();
+        float vel = corpoCC != null ? new Vector2(corpoCC.velocity.x, corpoCC.velocity.z).magnitude : 0f;
+        passada += Time.deltaTime * (2f + vel * 1.6f);
+        float anda = Mathf.Clamp01(vel / 4f);
+        pose.pos += new Vector3(Mathf.Sin(passada) * 0.012f * anda, -Mathf.Abs(Mathf.Cos(passada)) * 0.014f * anda + Mathf.Sin(Time.time * 1.7f) * 0.003f, 0f);
+
+        var t = naMao.transform;
+        t.rotation = c.rotation * pose.rot * Quaternion.Inverse(Quaternion.LookRotation(geo.Eixo, geo.Cima));
+        t.position += c.TransformPoint(pose.pos) - t.TransformPoint(pivo);
+
+        // mãos no cabo
+        Vector3 eixoW = t.TransformDirection(geo.Eixo).normalized, cimaW = t.TransformDirection(geo.Cima).normalized;
+        Vector3 baixo = -c.up, fora = c.right;
+        if (Equipada == "rifle")
+        {
+            float tr = Recarregando ? tempoRecarga - (fimRecarga - Time.time) : -1f;
+            Vector3 pe = pegaE;
+            if (tr >= 0f)
+            {
+                // a esquerda vai até o ferrolho, puxa e empurra duas vezes, e volta
+                float ida = Suave((tr - 0.25f) / 0.3f) * (1f - Suave((tr - (tempoRecarga - 0.5f)) / 0.3f));
+                var ferrolho = geo.Ponto(0.5f, 0.95f) + geo.Eixo * (-0.06f * Mathf.Max(0f, Mathf.Sin((tr - 0.55f) * Mathf.PI * 2f / 0.6f)) * ida) / Mathf.Max(0.01f, t.lossyScale.x);
+                pe = Vector3.Lerp(pegaE, ferrolho, ida);
+            }
+            // direita no pescoço da coronha (desce para trás); esquerda por baixo da telha, palma para cima
+            maoD?.Segurar(t.TransformPoint(pegaD), -eixoW * 0.8f - cimaW * 0.6f, fora * 0.7f + cimaW * 0.4f - eixoW * 0.3f, Ombro(maoD) + baixo * 0.4f + fora * 0.25f, raioD);
+            maoE?.Segurar(t.TransformPoint(pe), -eixoW, -cimaW - fora * 0.6f, Ombro(maoE) + baixo * 0.4f - fora * 0.3f, raioE);
+        }
+        else if (Equipada == "machado")
+        {
+            maoE?.Segurar(t.TransformPoint(pegaE), -eixoW, Ombro(maoE) - t.TransformPoint(pegaE), Ombro(maoE) + baixo * 0.45f - fora * 0.25f, raioE);
+            maoD?.Segurar(t.TransformPoint(pegaD), -eixoW, Ombro(maoD) - t.TransformPoint(pegaD), Ombro(maoD) + baixo * 0.45f + fora * 0.25f, raioD);
+        }
+        else // faca
+        {
+            maoE?.Segurar(t.TransformPoint(pegaE), -eixoW, Ombro(maoE) - t.TransformPoint(pegaE) + baixo * 0.1f, Ombro(maoE) + baixo * 0.45f - fora * 0.25f, raioE);
+        }
+    }
+
+    private static Vector3 Ombro(MaoNoCabo m) => m.Ombro.position;
+
     private void Golpear()
     {
         fimGolpe = Time.time + 0.45f;
+        inicioGolpe = Time.time;
+        if (Equipada != "") return; // as armas são animadas por código (PoseDaArma)
         if (animBracos == null)
         {
             var mao = FindFirstObjectByType<MaoPrimeiraPessoa>();
@@ -414,19 +540,17 @@ public class ArmasDoJogador : MonoBehaviour
         }
         if (animBracos != null && animBracos.isActiveAndEnabled)
         {
-            animBracos.SetBool("UseRightHand", false); // a direita está com a lanterna
+            animBracos.SetBool("UseRightHand", !LanternaNaMao.MaoDireitaOcupada && !CarvaoNaMao.NaDireita);
             animBracos.SetTrigger("Jab");
         }
     }
 
-    private bool lanternaDoModelo;
-
     private void TrocarModelo()
     {
         modeloDe = Equipada;
-        lanternaDoModelo = LanternaNaMao.NaMaoAgora;
         if (naMao != null) Destroy(naMao);
-        naMao = null;
+        naMao = null; geo = null;
+        inicioSacar = Time.time; inicioGolpe = -99f;
         GameObject fonte = Equipada == "faca" ? modeloFaca : Equipada == "machado" ? modeloMachado : Equipada == "rifle" ? modeloRifle : null;
         if (fonte == null || cam == null) return;
 
@@ -447,45 +571,29 @@ public class ArmasDoJogador : MonoBehaviour
         }
         CameraDosBracos.PorNaCamada(naMao); // desenhada por cima do mundo: não entra nas paredes
 
-        // tamanho e direção: o eixo comprido vai para a frente
-        float comprimento = Equipada == "faca" ? 0.22f : Equipada == "machado" ? 0.5f : 0.95f;
-        bool pontaLarga = Equipada != "rifle"; // machado: a cabeça (larga) para a frente; faca: a lâmina; rifle: o cano fino
-        Orientar(naMao.transform, comprimento, pontaLarga, out Vector3 centro, out Vector3 eixo, out float comp);
+        // tamanho e eixo (a arma ainda está sem giro: o eixo do mundo é o do objeto)
+        float comprimento = Equipada == "faca" ? 0.3f : Equipada == "machado" ? 0.62f : 1f;
+        bool pontaLarga = Equipada != "rifle"; // machado: a cabeça (larga) para a frente; rifle: o cano fino
+        Orientar(naMao.transform, comprimento, pontaLarga, out _, out Vector3 eixo, out _);
+        geo = GeometriaDaArma.Medir(naMao.transform, naMao.transform.InverseTransformDirection(eixo), Equipada != "rifle");
 
-        if (Equipada == "rifle")
-        {
-            naMao.transform.SetPositionAndRotation(cam.transform.position, cam.transform.rotation);
-            Orientar(naMao.transform, comprimento, pontaLarga, out centro, out eixo, out comp);
-            naMao.transform.rotation = Quaternion.FromToRotation(eixo, cam.transform.forward) * naMao.transform.rotation;
-            Orientar(naMao.transform, comprimento, pontaLarga, out centro, out eixo, out comp);
-            // com a lanterna na direita, o rifle fica do lado esquerdo
-            Vector3 alvo = cam.transform.TransformPoint(LanternaNaMao.NaMaoAgora ? new Vector3(-0.14f, -0.24f, 0.44f) : new Vector3(0.14f, -0.22f, 0.42f));
-            naMao.transform.position += alvo - centro;
-            posNaMao = cam.transform.InverseTransformPoint(naMao.transform.position);
-            rotNaMao = Quaternion.Inverse(cam.transform.rotation) * naMao.transform.rotation;
-            return;
-        }
+        // onde as mãos pegam (0 = fim do cabo, 1 = ponta)
+        if (Equipada == "machado") { pegaE = geo.Ponto(0.06f); pegaD = geo.Ponto(0.36f); pivo = geo.Ponto(0.22f); }
+        else if (Equipada == "faca") { pegaE = geo.Ponto(0.2f); pegaD = pegaE; pivo = pegaE; }
+        else { pegaD = geo.Ponto(0.3f, 0.3f); pegaE = geo.Ponto(0.55f, 0.3f); pivo = geo.Ponto(0.45f); }
 
-        // faca e machado: no punho esquerdo (pose de punho fechado)
-        if (poseEsquerda == null)
+        // grossura do cabo em cada pegada; a arma vai presa na câmera (anda junto com os braços, sem atraso)
+        float esc = naMao.transform.lossyScale.x;
+        float uE = Equipada == "machado" ? 0.06f : Equipada == "faca" ? 0.2f : 0.55f, uD = Equipada == "machado" ? 0.36f : Equipada == "faca" ? 0.2f : 0.3f;
+        raioE = Mathf.Clamp(geo.Raio(uE) * esc, 0.01f, 0.026f);
+        raioD = Mathf.Clamp(geo.Raio(uD) * esc, 0.01f, 0.026f);
+        naMao.transform.SetParent(cam.transform, true);
+
+        if (maoE == null || maoD == null)
         {
-            var mao = FindFirstObjectByType<MaoPrimeiraPessoa>();
-            if (mao != null) poseEsquerda = PoseDoBraco.Gravar(mao.transform, ".L", "guard_idle", 0.1f);
+            var bracos = FindFirstObjectByType<MaoPrimeiraPessoa>();
+            if (bracos != null) { maoE = MaoNoCabo.Criar(bracos.transform, ".L"); maoD = MaoNoCabo.Criar(bracos.transform, ".R"); }
         }
-        if (poseEsquerda == null) return;
-        poseEsquerda.Aplicar();
-        poseEsquerda.Punho(cam.transform.forward, out Vector3 punho, out Vector3 eixoPunho);
-        // a lâmina aponta para cima e para a frente, saindo do punho
-        // a lâmina sai do punho para a frente (não tampa a visão); o machado fica mais em pé
-        Vector3 para = Equipada == "machado"
-            ? (cam.transform.up * 0.65f + cam.transform.forward * 0.55f + cam.transform.right * 0.15f + eixoPunho * 0.15f).normalized
-            : (cam.transform.forward * 0.75f + cam.transform.up * 0.5f + eixoPunho * 0.2f).normalized;
-        naMao.transform.rotation = Quaternion.FromToRotation(eixo, para) * naMao.transform.rotation;
-        Orientar(naMao.transform, comprimento, pontaLarga, out centro, out eixo, out comp);
-        float cabo = Equipada == "machado" ? 0.32f : 0.22f; // o punho segura perto do fim do cabo
-        naMao.transform.position += punho + eixo * (comp * cabo) - centro;
-        posNaMao = poseEsquerda.Mao.InverseTransformPoint(naMao.transform.position);
-        rotNaMao = Quaternion.Inverse(poseEsquerda.Mao.rotation) * naMao.transform.rotation;
     }
 
     // ajusta a escala para o comprimento e devolve centro, eixo comprido (para a ponta escolhida) e comprimento
@@ -527,6 +635,12 @@ public class ArmasDoJogador : MonoBehaviour
             }
         }
         bool positivoLargo = maisLargo >= menosLargo;
+        var lamina = System.Array.Find(mfs, m => m.name.Contains("Lamina"));
+        if (lamina != null)
+        {
+            positivoLargo = Vector3.Dot(t.InverseTransformPoint(lamina.GetComponent<Renderer>().bounds.center) - lb.center, eixoLocal) > 0f;
+            pontaLarga = true;
+        }
         if (positivoLargo != pontaLarga) eixoLocal = -eixoLocal;
         rs = t.GetComponentsInChildren<Renderer>();
         b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
@@ -617,6 +731,6 @@ public class ArmasDoJogador : MonoBehaviour
         hud.alpha = some ? 0f : 1f;
         var d = Armas[Equipada];
         string extra = Equipada == "rifle" ? (Recarregando ? "  <color=#E8B04A>recarregando...</color>" : $"  {NoPente}/{capacidadePente}  <color=#B0A080>(+{MunicaoNaMochila()})</color>") : "";
-        hud.text = $"<size=70%><color=#B0A080>[1-4] arma   [Q] largar   [H] lanterna   [Tab] mochila</color></size>\n<color=#E8B04A>{d.nome}</color>{extra}";
+        hud.text = $"<size=70%><color=#B0A080>[Tab] segurar: armas · toque: mochila   [Q] largar   [H] lanterna</color></size>\n<color=#E8B04A>{d.nome}</color>{extra}";
     }
 }

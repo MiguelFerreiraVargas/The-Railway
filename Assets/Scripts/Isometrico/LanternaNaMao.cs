@@ -48,6 +48,8 @@ public class LanternaNaMao : MonoBehaviour
     public static bool Guardar(bool guardar)
     {
         if (!guardar && Guardada && CarvaoNaMao.NaDireita) { Narrador.Falar("A mão direita tá com o carvão."); return false; }
+        // machado/rifle nas duas mãos: pegar a lanterna guarda a arma
+        if (!guardar && ArmasDoJogador.DuasMaosOcupadas) ArmasDoJogador.Instance.Equipar("");
         Guardada = guardar;
         return true;
     }
