@@ -720,30 +720,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1364312915968888055, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
-      propertyPath: m_Camera
-      value: 
-      objectReference: {fileID: 1571704950550193012}
-    - target: {fileID: 1364312915968888055, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
-      propertyPath: m_Actions
-      value: 
-      objectReference: {fileID: -944628639613478452, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
-    - target: {fileID: 1364312915968888055, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
-      propertyPath: m_UIInputModule
-      value: 
-      objectReference: {fileID: 153621182}
-    - target: {fileID: 2051249413257370932, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.34
-      objectReference: {fileID: 0}
-    - target: {fileID: 8599230979302206085, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
-      propertyPath: jump
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8599230979302206085, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
-      propertyPath: sprint
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 37e73d26eb0ceaf4191412950d476c06, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.8309
@@ -819,6 +795,30 @@ PrefabInstance:
     - target: {fileID: 7399841084993121079, guid: 37e73d26eb0ceaf4191412950d476c06, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.00092636
+      objectReference: {fileID: 0}
+    - target: {fileID: 1364312915968888055, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 1571704950550193012}
+    - target: {fileID: 1364312915968888055, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: m_Actions
+      value: 
+      objectReference: {fileID: -944628639613478452, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
+    - target: {fileID: 1364312915968888055, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: m_UIInputModule
+      value: 
+      objectReference: {fileID: 153621182}
+    - target: {fileID: 2051249413257370932, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.34
+      objectReference: {fileID: 0}
+    - target: {fileID: 8599230979302206085, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: jump
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8599230979302206085, guid: 70f2f4af1e11bcd4b9d3abc930ba484d, type: 3}
+      propertyPath: sprint
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
