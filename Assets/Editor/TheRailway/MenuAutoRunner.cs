@@ -201,6 +201,37 @@ public static class MenuAutoRunner
             return;
         }
 
+        if (command == "previacalebe")
+        {
+            File.Delete(CommandFile);
+            var clog = new StringBuilder();
+            try { AssetsCalebe.Montar(clog); AssetsCalebe.Previa(clog, AssetsCalebe.PrefabsMontados()); clog.AppendLine("ok"); }
+            catch (Exception e) { clog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(clog);
+            return;
+        }
+
+        if (command == "calebe")
+        {
+            // modelos da pasta CalebeAssets3D no jogo: carvão do prólogo, móveis/tralha das estruturas e armas
+            File.Delete(CommandFile);
+            var clog = new StringBuilder();
+            clog.AppendLine($"comando: calebe  ({DateTime.Now:HH:mm:ss})");
+            try
+            {
+                AssetsCalebe.Montar(clog);
+                var pro = EditorSceneManager.OpenScene(PrologoBuilder.ScenePath, OpenSceneMode.Single);
+                clog.AppendLine($"prólogo: {AssetsCalebe.CarvaoNaCena()} pedras viraram carvão escaneado");
+                EditorSceneManager.MarkSceneDirty(pro); EditorSceneManager.SaveScene(pro);
+                EstruturasBuilder.Construir(clog);
+                SistemasBuilder.Construir(clog);
+                clog.AppendLine("ok");
+            }
+            catch (Exception e) { clog.AppendLine("ERRO: " + e); Debug.LogException(e); }
+            WriteStatus(clog);
+            return;
+        }
+
         if (command == "armastest")
         {
             File.Delete(CommandFile);
