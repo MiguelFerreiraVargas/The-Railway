@@ -27,7 +27,7 @@ public class RodaDeArmas : MonoBehaviour
         ("", "MÃOS", "Desarmado"),
         ("faca", "FACA", "Corpo a corpo"),
         ("machado", "MACHADO", "Corpo a corpo · duas mãos"),
-        ("rifle", "RIFLE DE CAÇA", "Arma de fogo · duas mãos"),
+        ("rifle", "RIFLE", "Arma de fogo · duas mãos"),
         ("lanterna", "LANTERNA", "Luz"),
     };
 

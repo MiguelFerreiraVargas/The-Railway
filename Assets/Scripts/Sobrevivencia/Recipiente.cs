@@ -40,7 +40,7 @@ public class Recipiente : Interagivel
         { "municao", ("munição", "balas") },
         { "faca", ("uma faca", "facas") },
         { "machado", ("um machado", "machados") },
-        { "rifle", ("um rifle de caça", "rifles") },
+        { "rifle", ("um rifle", "rifles") },
         { "lanterna", ("uma lanterna", "lanternas") },
         { "pilha", ("uma pilha", "pilhas") },
     };

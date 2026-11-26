@@ -62,20 +62,25 @@ public static class SistemasBuilder
         Pegar<EfeitosDeEstado>(sistemas);
 
         // ---------------------------------------------------------------- armas
-        // faca nova (modelada aqui: a do kit era uma figura chapada com borda preta)
-        GameObject faca = FacaNova();
-        // machado novo (modelo trazido de fora); sem ele, o do kit
-        GameObject machado = MachadoNovo();
+        // armas dos modelos da pasta CalebeAssets3D (Assets/Prefabs/Calebe); sem eles, as feitas aqui / do kit
+        AssetsCalebe.Montar(log);
+        GameObject faca = AssetsCalebe.Prefab("Faca") ?? FacaNova();
+        GameObject machado = AssetsCalebe.Prefab("Machado") ?? MachadoNovo();
         if (machado == null && kit != null && kit.transform.Find("Axe") != null) machado = kit.transform.Find("Axe").gameObject;
-        GameObject rifle = kit != null ? kit.transform.Find("hunting_rifle")?.gameObject : null;
+        GameObject rifle = AssetsCalebe.Prefab("Rifle") ?? (kit != null ? kit.transform.Find("hunting_rifle")?.gameObject : null);
+        var rifleVelho = kit != null ? kit.transform.Find("hunting_rifle")?.gameObject : null;
+        var machadoVelho = kit != null ? kit.transform.Find("Axe")?.gameObject : null;
         var armas = Pegar<ArmasDoJogador>(jogador);
         armas.modeloFaca = faca; armas.modeloMachado = machado; armas.modeloRifle = rifle; armas.fonte = fonte;
         EditorUtility.SetDirty(armas);
         Pegar<Desmaio>(jogador);
         // as armas do kit saem de vista: armas são achados raros
         var facaVelha = kit != null && kit.transform.Find("knife") != null ? kit.transform.Find("knife").gameObject : null;
-        foreach (var a in new[] { faca, machado, rifle, facaVelha }) if (a != null && a.scene.IsValid()) { a.SetActive(false); EditorUtility.SetDirty(a); }
+        foreach (var a in new[] { faca, machado, rifle, facaVelha, rifleVelho, machadoVelho }) if (a != null && a.scene.IsValid()) { a.SetActive(false); EditorUtility.SetDirty(a); }
         ArmasNasEstruturas(faca, machado, rifle);
+
+        // ---------------------------------------------------------------- pedras dos montes: carvão escaneado
+        log.AppendLine($"carvão escaneado em {AssetsCalebe.CarvaoNaCena()} pedras dos montes");
 
         // ---------------------------------------------------------------- carvão da locomotiva
         foreach (var ct in Object.FindObjectsByType<CombustivelTrem>(FindObjectsSortMode.None))
@@ -149,7 +154,7 @@ public static class SistemasBuilder
         {
             ("faca", faca, 0.30f, "Casa da Curva", "PEGAR FACA", "Uma faca. Melhor que os punhos. [2] pra usar."),
             ("machado", machado, 0.18f, "Casa Velha 1", "PEGAR MACHADO", "Um machado! Isso corta árvore caída... e o que mais vier. [3]"),
-            ("rifle", rifle, 0.10f, "Mercadinho", "PEGAR RIFLE", "Um rifle de caça. Pesado... mas agora eu tenho uma chance. [4]"),
+            ("rifle", rifle, 0.10f, "Mercadinho", "PEGAR RIFLE", "Um rifle. Pesado... mas agora eu tenho uma chance. [4]"),
         };
         foreach (var tp in tipos)
         {

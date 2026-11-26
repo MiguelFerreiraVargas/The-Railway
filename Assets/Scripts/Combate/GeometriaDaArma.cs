@@ -59,9 +59,30 @@ public class GeometriaDaArma
         }
         bool positivo = (mais - linha) >= (linha - menos);
         if (!gumeAoLado) positivo = !positivo;
+        // peça marcada "Mira" (a alça de mira fica em cima da arma): manda no lado de cima
+        var mira = System.Array.Find(arma.GetComponentsInChildren<MeshFilter>(), m => m.name.Contains("Mira"));
+        if (mira != null)
+        {
+            var r = mira.GetComponent<Renderer>();
+            if (r != null) positivo = Vector3.Dot(arma.InverseTransformPoint(r.bounds.center), s1) > g.Media(s1, 0f, 1f);
+        }
         g.Cima = positivo ? s1 : -s1;
         g.Lado = Vector3.Cross(g.Cima, g.Eixo).normalized;
         return g;
+    }
+
+    /// <summary>Altura no eixo (0..1) do ponto mais baixo entre <paramref name="u0"/> e <paramref name="u1"/> (o punho de um fuzil).</summary>
+    public float UMaisBaixo(float u0, float u1)
+    {
+        float menor = float.MaxValue, uAchado = (u0 + u1) * 0.5f;
+        foreach (var p in vs)
+        {
+            float u = U(p);
+            if (u < u0 || u > u1) continue;
+            float c = Vector3.Dot(p, Cima);
+            if (c < menor) { menor = c; uAchado = u; }
+        }
+        return uAchado;
     }
 
     private float U(Vector3 p) => (Vector3.Dot(p, Eixo) - uMin) / Mathf.Max(1e-5f, uMax - uMin);

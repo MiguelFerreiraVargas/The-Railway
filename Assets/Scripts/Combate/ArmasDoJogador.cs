@@ -13,7 +13,7 @@ public interface IAtingivel
 }
 
 /// <summary>
-/// Armas do Cândido: mãos (soco), faca, machado e rifle de caça. 1-4 trocam, botão esquerdo ataca,
+/// Armas do Cândido: mãos (soco), faca, machado e rifle. 1-4 trocam, botão esquerdo ataca,
 /// R recarrega o rifle. Corpo a corpo gasta estamina; o rifle gasta munição e faz barulho.
 /// Em primeira pessoa a arma fica na mão esquerda (a direita segura a lanterna); na isométrica
 /// o golpe/tiro vai para onde o mouse aponta. Depois de um combate, a sanidade cai.
@@ -406,6 +406,7 @@ public class ArmasDoJogador : MonoBehaviour
     private GeometriaDaArma geo;
     private MaoNoCabo maoE, maoD;
     private Vector3 pivo, pegaE, pegaD;   // no espaço da arma
+    private float uPunho = 0.3f;
     private float raioE = 0.017f, raioD = 0.017f; // grossura do cabo onde cada mão pega (m)
     private float inicioSacar, inicioGolpe = -99f, passada;
     private CharacterController corpoCC;
@@ -573,20 +574,26 @@ public class ArmasDoJogador : MonoBehaviour
 
         // tamanho e eixo (a arma ainda está sem giro: o eixo do mundo é o do objeto)
         float comprimento = Equipada == "faca" ? 0.3f : Equipada == "machado" ? 0.62f : 1f;
-        bool pontaLarga = Equipada != "rifle"; // machado: a cabeça (larga) para a frente; rifle: o cano fino
+        // machado: a cabeça (larga) para a frente; rifle: o cano fino; faca: a lâmina (mais fina que o cabo)
+        bool pontaLarga = Equipada == "machado";
         Orientar(naMao.transform, comprimento, pontaLarga, out _, out Vector3 eixo, out _);
         geo = GeometriaDaArma.Medir(naMao.transform, naMao.transform.InverseTransformDirection(eixo), Equipada != "rifle");
 
         // onde as mãos pegam (0 = fim do cabo, 1 = ponta)
         if (Equipada == "machado") { pegaE = geo.Ponto(0.06f); pegaD = geo.Ponto(0.36f); pivo = geo.Ponto(0.22f); }
         else if (Equipada == "faca") { pegaE = geo.Ponto(0.2f); pegaD = pegaE; pivo = pegaE; }
-        else { pegaD = geo.Ponto(0.3f, 0.3f); pegaE = geo.Ponto(0.55f, 0.3f); pivo = geo.Ponto(0.45f); }
+        else
+        {
+            // a mão direita vai no punho: o ponto mais baixo da metade de trás (fuzil reto, de punho de pistola)
+            uPunho = geo.UMaisBaixo(0.12f, 0.5f);
+            pegaD = geo.Ponto(uPunho - 0.03f, 0.22f, 0.025f); pegaE = geo.Ponto(0.6f, 0.3f); pivo = geo.Ponto(0.45f);
+        }
 
         // grossura do cabo em cada pegada; a arma vai presa na câmera (anda junto com os braços, sem atraso)
         float esc = naMao.transform.lossyScale.x;
-        float uE = Equipada == "machado" ? 0.06f : Equipada == "faca" ? 0.2f : 0.55f, uD = Equipada == "machado" ? 0.36f : Equipada == "faca" ? 0.2f : 0.3f;
+        float uE = Equipada == "machado" ? 0.06f : Equipada == "faca" ? 0.2f : 0.6f, uD = Equipada == "machado" ? 0.36f : Equipada == "faca" ? 0.2f : uPunho;
         raioE = Mathf.Clamp(geo.Raio(uE) * esc, 0.01f, 0.026f);
-        raioD = Mathf.Clamp(geo.Raio(uD) * esc, 0.01f, 0.026f);
+        raioD = Equipada == "rifle" ? 0.016f : Mathf.Clamp(geo.Raio(uD) * esc, 0.01f, 0.026f); // o punho é fino (a medida pega o corpo da arma junto)
         naMao.transform.SetParent(cam.transform, true);
 
         if (maoE == null || maoD == null)
